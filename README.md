@@ -1,6 +1,6 @@
-# CDK Monitoring Infrastructure
+# CDK Monitoring and Alerting Infrastructure
 
-CloudWatch monitoring and alerting infrastructure for dev, staging, and prod environments using AWS CDK.
+CloudWatch monitoring and alerting infrastructure for multiple environments using AWS CDK with TypeScript.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ CloudWatch monitoring and alerting infrastructure for dev, staging, and prod env
 
 **Deploy in 20 minutes** → See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
-The project is pre-configured for S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
+The project is pre-configured for only S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
 
 ### Prerequisites
 
