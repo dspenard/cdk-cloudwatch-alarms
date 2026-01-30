@@ -87,6 +87,9 @@ lib/
 └── constructs/
     ├── alarms/                  ← Alarm logic for each service
     └── notifications/           ← SNS, Slack, Teams integration
+
+scripts/
+└── setup-oidc.sh                ← Automated GitHub Actions OIDC setup
 ```
 
 ## Documentation
