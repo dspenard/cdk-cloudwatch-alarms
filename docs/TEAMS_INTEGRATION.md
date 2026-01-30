@@ -1,5 +1,7 @@
 # Microsoft Teams Integration Guide
 
+> **⚠️ Note:** This integration has not been tested yet. The code is provided as a reference implementation. Please test thoroughly in your dev environment before using in production.
+
 This guide explains how to integrate CloudWatch alarms with Microsoft Teams channels.
 
 ## Table of Contents

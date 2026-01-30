@@ -268,7 +268,7 @@ export class MonitoringStack extends cdk.Stack {
         environment,
         webAclName: name,
         webAclId: id,
-        region: 'us-east-1',
+        region: 'us-east-1', // Change if WAF is in a different region
         alarmTopic: alertTopics.criticalAlarmTopic,
       });
     });

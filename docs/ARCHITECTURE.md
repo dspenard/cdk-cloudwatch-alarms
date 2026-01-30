@@ -22,7 +22,7 @@ The diagram above shows the complete monitoring infrastructure:
 - **Monitored Resources**: S3, ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF
 - **CloudWatch**: Collects metrics and triggers alarms based on thresholds
 - **SNS Topics**: Routes notifications to different channels (Critical vs Warning)
-- **Notification Channels**: Email, Slack, and Teams integrations
+- **Notification Channels**: Email, SMS, Slack, and Teams integrations (Slack and Teams not yet tested)
 - **CDK/CloudFormation**: Infrastructure as Code deployment
 
 ### Deployment Flow

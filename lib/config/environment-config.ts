@@ -10,9 +10,9 @@ export interface EnvironmentConfig {
 
 export const ENVIRONMENT_CONFIGS: Record<string, EnvironmentConfig> = {
   dev: {
-    accountId: '685915393407', // Your dev account ID
-    region: 'us-east-1',
-    emailAddresses: ['dspenard@gmail.com'], // Email for alert notifications
+    accountId: '', // TODO: Add your dev AWS account ID
+    region: 'us-east-1', // Change if deploying to a different region
+    emailAddresses: [], // TODO: Add email addresses for alert notifications
     // snsTopicArn: 'arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-alerts-dev',
     // teamsWebhookUrl: '', // TODO: Add Teams webhook URL
     // slackWebhookUrl: '', // TODO: Add Slack webhook URL
@@ -20,8 +20,8 @@ export const ENVIRONMENT_CONFIGS: Record<string, EnvironmentConfig> = {
   },
   staging: {
     accountId: '', // TODO: Add your staging account ID
-    region: 'us-east-1',
-    // emailAddresses: ['team@example.com'], // TODO: Add email addresses
+    region: 'us-east-1', // Change if deploying to a different region
+    emailAddresses: [], // TODO: Add email addresses
     // snsTopicArn: 'arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-alerts-staging',
     // teamsWebhookUrl: '', // TODO: Add Teams webhook URL
     // slackWebhookUrl: '', // TODO: Add Slack webhook URL
@@ -29,8 +29,8 @@ export const ENVIRONMENT_CONFIGS: Record<string, EnvironmentConfig> = {
   },
   prod: {
     accountId: '', // TODO: Add your prod account ID
-    region: 'us-east-1',
-    // emailAddresses: ['team@example.com'], // TODO: Add email addresses
+    region: 'us-east-1', // Change if deploying to a different region
+    emailAddresses: [], // TODO: Add email addresses
     // snsTopicArn: 'arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-alerts-prod',
     // teamsWebhookUrl: '', // TODO: Add Teams webhook URL
     // slackWebhookUrl: '', // TODO: Add Slack webhook URL

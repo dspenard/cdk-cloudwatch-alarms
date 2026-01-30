@@ -76,6 +76,8 @@ Manual subscriptions are not tracked in version control and must be repeated for
 
 ### 3. Slack Notifications
 
+> **⚠️ Note:** Slack integration has not been tested yet. The code is provided as a reference implementation.
+
 **Option A: AWS Chatbot (No code changes)**
 1. Go to AWS Chatbot console
 2. Configure Slack workspace
@@ -97,6 +99,8 @@ dev: {
 See `SLACK_INTEGRATION.md` for detailed instructions.
 
 ### 4. Microsoft Teams Notifications
+
+> **⚠️ Note:** Teams integration has not been tested yet. The code is provided as a reference implementation.
 
 **Option A: AWS Chatbot (No code changes)**
 1. Go to AWS Chatbot console

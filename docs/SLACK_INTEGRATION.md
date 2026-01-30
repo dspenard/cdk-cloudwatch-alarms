@@ -1,5 +1,7 @@
 # Slack Integration Guide
 
+> **⚠️ Note:** This integration has not been tested yet. The code is provided as a reference implementation. Please test thoroughly in your dev environment before using in production.
+
 This guide explains how to integrate CloudWatch alarms with Slack channels.
 
 ## Table of Contents

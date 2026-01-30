@@ -497,6 +497,8 @@ dev: {
 }
 ```
 
+> **⚠️ Note:** Slack integration has not been tested yet. See [Slack Integration](SLACK_INTEGRATION.md) for detailed setup instructions.
+
 ### Teams
 1. Create webhook in Teams channel
 2. Add to `lib/config/environment-config.ts`:
@@ -508,6 +510,8 @@ dev: {
   teamsWebhookUrl: 'https://outlook.office.com/webhook/...',
 }
 ```
+
+> **⚠️ Note:** Teams integration has not been tested yet. See [Teams Integration](TEAMS_INTEGRATION.md) for detailed setup instructions.
 
 ### Manual Email Subscription (Alternative)
 If you prefer not to configure emails in code, you can manually subscribe:

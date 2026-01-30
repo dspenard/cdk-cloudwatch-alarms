@@ -78,7 +78,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Change if deploying to a different region
 
       - name: Deploy to dev
         run: npx cdk deploy --all --context environment=dev --require-approval never
@@ -105,7 +105,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Change if deploying to a different region
 
       - name: Deploy to staging
         run: npx cdk deploy --all --context environment=staging --require-approval never
@@ -132,7 +132,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
-          aws-region: us-east-1
+          aws-region: us-east-1  # Change if deploying to a different region
 
       - name: Deploy to prod
         run: npx cdk deploy --all --context environment=prod --require-approval never
