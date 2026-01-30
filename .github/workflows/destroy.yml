@@ -1,3 +1,4 @@
+---
 # GitHub Actions workflow for destroying CDK monitoring infrastructure
 # Uses OIDC authentication (no long-lived credentials needed)
 #
