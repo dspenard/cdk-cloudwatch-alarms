@@ -74,7 +74,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to dev
-        run: npm run deploy:dev -- --require-approval never
+        run: cdk deploy --all --context environment=dev --require-approval never
 
   deploy-staging:
     needs: deploy-dev
@@ -101,7 +101,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to staging
-        run: npm run deploy:staging -- --require-approval never
+        run: cdk deploy --all --context environment=staging --require-approval never
 
   deploy-prod:
     needs: deploy-staging
@@ -128,4 +128,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to prod
-        run: npm run deploy:prod -- --require-approval never
+        run: cdk deploy --all --context environment=prod --require-approval never
