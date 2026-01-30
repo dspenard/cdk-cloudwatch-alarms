@@ -2,6 +2,19 @@
 
 This document provides examples of how to add alarms for your ~100 resources.
 
+## Table of Contents
+
+- [Example 1: ECS Services](#example-1-ecs-services)
+- [Example 2: RDS Databases](#example-2-rds-databases)
+- [Example 3: Load Balancers](#example-3-load-balancers)
+- [Example 4: S3 Buckets](#example-4-s3-buckets)
+- [Example 5: EFS File Systems](#example-5-efs-file-systems)
+- [Example 6: FSx File Systems](#example-6-fsx-file-systems)
+- [Example 7: SES Email Service](#example-7-ses-email-service)
+- [Example 8: Step Functions](#example-8-step-functions)
+- [Example 9: WAF Web ACLs](#example-9-waf-web-acls)
+- [Example 10: Mixed Services](#example-10-mixed-services)
+
 ## Example 1: ECS Services
 
 ```typescript

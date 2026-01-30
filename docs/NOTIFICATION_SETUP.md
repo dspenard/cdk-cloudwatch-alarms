@@ -2,6 +2,22 @@
 
 Quick reference for setting up all notification channels.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Quick Setup](#quick-setup)
+  - [SMS Notifications](#1-sms-notifications)
+  - [Email Notifications](#2-email-notifications)
+  - [Slack Notifications](#3-slack-notifications)
+  - [Microsoft Teams Notifications](#4-microsoft-teams-notifications)
+- [Complete Configuration Example](#complete-configuration-example)
+- [Testing Notifications](#testing-notifications)
+- [Notification Routing Strategies](#notification-routing-strategies)
+- [Cost Considerations](#cost-considerations)
+- [Security Best Practices](#security-best-practices)
+- [Troubleshooting](#troubleshooting)
+- [Next Steps](#next-steps)
+
 ## Overview
 
 This CDK project supports multiple notification channels:

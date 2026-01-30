@@ -2,6 +2,21 @@
 
 This guide shows how to enable monitoring for additional AWS services beyond S3.
 
+## Table of Contents
+
+- [Current State](#current-state)
+- [How to Enable a Service](#how-to-enable-a-service)
+- [ECS Services](#ecs-services)
+- [RDS Databases](#rds-databases)
+- [Load Balancers (ELB)](#load-balancers-elb)
+- [EFS File Systems](#efs-file-systems)
+- [FSx File Systems](#fsx-file-systems)
+- [SES Email Service](#ses-email-service)
+- [Step Functions](#step-functions)
+- [WAF Web ACLs](#waf-web-acls)
+- [Getting Resource Information](#getting-resource-information)
+- [Next Steps](#next-steps)
+
 ## Current State
 
 ✅ **Active**: S3 bucket monitoring  

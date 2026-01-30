@@ -2,11 +2,30 @@
 
 CloudWatch monitoring and alerting infrastructure for dev, staging, and prod environments using AWS CDK.
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [What You Get](#what-you-get)
+- [Setup Steps](#setup-steps)
+- [Key Principle](#key-principle)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Common Commands](#common-commands)
+- [Cost Estimate](#cost-estimate)
+- [Support](#support)
+
 ## Quick Start
 
 **Deploy in 20 minutes** → See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
 The project is pre-configured for S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
+
+### Prerequisites
+
+- Git
+- Node.js 18+
+- AWS CLI configured
+- AWS CDK CLI: `npm install -g aws-cdk`
 
 ### Required Configuration (3 values)
 
@@ -29,12 +48,13 @@ See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Setup Steps
 
-1. **Install**: `npm install`
-2. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
-3. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
-4. **Bootstrap**: `cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>`
-5. **Deploy**: `npm run build && cdk deploy --context environment=<ENV> --profile YOUR_PROFILE`
-6. **Confirm Email**: Check inbox for AWS SNS confirmation email and click the link
+1. **Clone**: `git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git && cd YOUR_REPO_NAME`
+2. **Install**: `npm install`
+3. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
+4. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
+5. **Bootstrap**: `cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>`
+6. **Deploy**: `npm run build && cdk deploy --context environment=<ENV> --profile YOUR_PROFILE`
+7. **Confirm Email**: Check inbox for AWS SNS confirmation email and click the link
 
 **Environment Context**: Replace `<ENV>` with your environment name from `environment-config.ts` (`dev`, `staging`, or `prod`).
 

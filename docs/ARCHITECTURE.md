@@ -1,5 +1,18 @@
 # Architecture Overview
 
+## Table of Contents
+
+- [Architecture Diagrams](#architecture-diagrams)
+- [High-Level Architecture](#high-level-architecture)
+- [Multi-Environment Architecture](#multi-environment-architecture)
+- [CDK Stack Architecture](#cdk-stack-architecture)
+- [Alarm Flow](#alarm-flow)
+- [Notification Flow](#notification-flow)
+- [Security Architecture](#security-architecture)
+- [Scalability Pattern](#scalability-pattern)
+- [Design Decisions](#design-decisions)
+- [Technology Stack](#technology-stack)
+
 ## Architecture Diagrams
 
 ### System Architecture

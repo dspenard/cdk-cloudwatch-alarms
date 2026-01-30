@@ -2,6 +2,15 @@
 
 This guide explains how to integrate CloudWatch alarms with Slack channels.
 
+## Table of Contents
+
+- [Option 1: AWS Chatbot (Recommended)](#option-1-aws-chatbot-recommended)
+- [Option 2: Webhook with Lambda (Included in Code)](#option-2-webhook-with-lambda-included-in-code)
+- [Testing Your Integration](#testing-your-integration)
+- [Message Format](#message-format)
+- [Troubleshooting](#troubleshooting)
+- [Advanced Configuration](#advanced-configuration)
+
 ## Option 1: AWS Chatbot (Recommended)
 
 AWS Chatbot provides native Slack integration for CloudWatch alarms.

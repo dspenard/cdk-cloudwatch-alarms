@@ -4,6 +4,21 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Authentication Methods Overview](#authentication-methods-overview)
+- [Step-by-Step Setup](#step-by-step-setup)
+  - [Option A: OIDC with IAM Role](#option-a-oidc-with-iam-role-recommended-for-production)
+  - [Option B: IAM User with Access Keys](#option-b-iam-user-with-access-keys-current-implementation)
+  - [Option C: Self-Hosted Runner](#option-c-self-hosted-runner-with-instance-profile)
+- [Testing Your Setup](#testing-your-setup)
+- [Troubleshooting](#troubleshooting)
+- [Next Steps](#next-steps)
+
+---
+
 This guide shows how to transition from local deployment to automated GitHub Actions deployment.
 
 ## Overview

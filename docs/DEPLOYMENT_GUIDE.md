@@ -2,6 +2,29 @@
 
 Complete guide for deploying CloudWatch monitoring infrastructure with AWS CDK.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [IAM Permissions Required](#iam-permissions-required)
+- [Understanding AWS Profiles](#understanding-aws-profiles)
+- [Quick Start (20 minutes)](#quick-start-20-minutes)
+- [What Gets Deployed](#what-gets-deployed)
+- [Testing Notifications](#testing-notifications)
+- [Adding/Removing Resources](#addingremoving-resources)
+- [Multiple Environments](#multiple-environments)
+- [GitHub Actions (Automated Deployment)](#github-actions-automated-deployment)
+- [Notification Channels](#notification-channels)
+- [Adjusting Alarm Thresholds](#adjusting-alarm-thresholds)
+- [Common Commands](#common-commands)
+- [Cost Estimate](#cost-estimate)
+- [Tearing Down / Removing Resources](#tearing-down--removing-resources)
+- [Troubleshooting](#troubleshooting)
+- [File Structure](#file-structure)
+- [Next Steps](#next-steps)
+- [Additional Documentation](#additional-documentation)
+- [Support](#support)
+
 ## Overview
 
 This CDK project deploys CloudWatch alarms for AWS resources. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
@@ -10,6 +33,7 @@ Currently configured: **S3 monitoring only** (other services are commented out a
 
 ## Prerequisites
 
+- Git
 - Node.js 18+
 - AWS CLI configured with a profile
 - AWS CDK CLI: `npm install -g aws-cdk`
@@ -183,18 +207,24 @@ Before deployment, you must configure these 3 values:
 
 **IAM Permissions Note**: For local testing, admin access is easiest. For production deployments and GitHub Actions, use the least privilege policy documented in the IAM Permissions section above.
 
-### 1. Install Dependencies
+### 1. Clone the Repository
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+cd YOUR_REPO_NAME
+```
+
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Get Your AWS Account ID
+### 3. Get Your AWS Account ID
 ```bash
 aws sts get-caller-identity --profile YOUR_PROFILE
 # Note the "Account" value
 ```
 
-### 3. Configure Environment
+### 4. Configure Environment
 Edit `lib/config/environment-config.ts`:
 ```typescript
 dev: {
@@ -206,7 +236,7 @@ dev: {
 
 **Important**: Both `accountId` and `emailAddresses` are required for deployment.
 
-### 4. Configure Resources to Monitor
+### 5. Configure Resources to Monitor
 Edit `lib/stacks/monitoring-stack.ts`:
 
 **For S3 (currently active):**
@@ -228,19 +258,19 @@ See [ENABLING_SERVICES.md](ENABLING_SERVICES.md) for details on each service.
 
 **To enable other services:** Uncomment the import and code section in `monitoring-stack.ts`, update resource names, and deploy.
 
-### 5. Bootstrap CDK (One-time)
+### 6. Bootstrap CDK (One-time)
 ```bash
 cdk bootstrap aws://YOUR_ACCOUNT_ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>
 ```
 
 **Note**: Replace `<ENV>` with your environment name from `environment-config.ts` (e.g., `dev`, `staging`, or `prod`).
 
-### 6. Build the Project
+### 7. Build the Project
 ```bash
 npm run build
 ```
 
-### 7. Preview Changes (Optional but Recommended)
+### 8. Preview Changes (Optional but Recommended)
 ```bash
 cdk diff --context environment=<ENV> --profile YOUR_PROFILE
 ```
@@ -248,7 +278,7 @@ cdk diff --context environment=<ENV> --profile YOUR_PROFILE
 **Note**: Use the same `<ENV>` value that matches your configuration in `environment-config.ts`.
 This shows you what resources will be created before actually deploying.
 
-### 8. Deploy
+### 9. Deploy
 ```bash
 cdk deploy --context environment=<ENV> --profile YOUR_PROFILE
 ```
@@ -259,7 +289,7 @@ Type `y` when prompted.
 
 **After deployment**: Check your email inbox for an AWS SNS confirmation email. Click the confirmation link to start receiving alert notifications.
 
-### 9. Verify Deployment (Optional)
+### 10. Verify Deployment (Optional)
 
 **Check CloudFormation Stack:**
 ```bash
