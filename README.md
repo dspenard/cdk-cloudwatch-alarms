@@ -6,7 +6,7 @@ CloudWatch monitoring and alerting infrastructure for dev, staging, and prod env
 
 - [Quick Start](#quick-start)
 - [What You Get](#what-you-get)
-- [Setup Steps](#setup-steps)
+- [Setup Overview](#setup-overview)
 - [Key Principle](#key-principle)
 - [Project Structure](#project-structure)
 - [Documentation](#documentation)
@@ -46,9 +46,11 @@ See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for step-by-step instru
 
 See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## Setup Steps
+## Setup Overview
 
-1. **Clone**: `git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git && cd YOUR_REPO_NAME`
+**This is merely a quick summary** - Please see [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for complete step-by-step instructions.
+
+1. **Clone**: `git clone https://github.com/dspenard/cdk-setup-for-cloudwatch-alerts.git && cd cdk-setup-for-cloudwatch-alerts`
 2. **Install**: `npm install`
 3. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
 4. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
@@ -60,7 +62,7 @@ See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 **IAM Permissions**: Your AWS profile needs CloudFormation, CloudWatch, SNS, and IAM permissions. For local testing, admin access is easiest. For production, use least privilege policy (see deployment guide).
 
-**Note**: AWS profile is specified via `--profile` flag in commands, not in code. See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for complete instructions.
+**Note**: AWS profile is specified via `--profile` flag in commands, not in code.
 
 ## Key Principle
 

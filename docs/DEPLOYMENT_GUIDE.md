@@ -209,8 +209,7 @@ Before deployment, you must configure these 3 values:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/dspenard/cdk-setup-for-cloudwatch-alerts.git && cd cdk-setup-for-cloudwatch-alerts
 ```
 
 ### 2. Install Dependencies
