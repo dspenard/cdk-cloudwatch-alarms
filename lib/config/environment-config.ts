@@ -10,9 +10,9 @@ export interface EnvironmentConfig {
 
 export const ENVIRONMENT_CONFIGS: Record<string, EnvironmentConfig> = {
   dev: {
-    accountId: '', // TODO: Add your dev account ID
+    accountId: '685915393407', // Your dev account ID
     region: 'us-east-1',
-    emailAddresses: [''], // TODO: Add your email for alert notifications
+    emailAddresses: ['dspenard@gmail.com'], // Email for alert notifications
     // snsTopicArn: 'arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-alerts-dev',
     // teamsWebhookUrl: '', // TODO: Add Teams webhook URL
     // slackWebhookUrl: '', // TODO: Add Slack webhook URL
