@@ -32,9 +32,11 @@ See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 1. **Install**: `npm install`
 2. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
 3. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
-4. **Bootstrap**: `cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE --context environment=dev`
-5. **Deploy**: `npm run build && cdk deploy --context environment=dev --profile YOUR_PROFILE`
+4. **Bootstrap**: `cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>`
+5. **Deploy**: `npm run build && cdk deploy --context environment=<ENV> --profile YOUR_PROFILE`
 6. **Confirm Email**: Check inbox for AWS SNS confirmation email and click the link
+
+**Environment Context**: Replace `<ENV>` with your environment name from `environment-config.ts` (`dev`, `staging`, or `prod`).
 
 **IAM Permissions**: Your AWS profile needs CloudFormation, CloudWatch, SNS, and IAM permissions. For local testing, admin access is easiest. For production, use least privilege policy (see deployment guide).
 
@@ -90,14 +92,16 @@ lib/
 npm run build
 
 # Preview changes
-cdk diff --context environment=dev --profile dev
+cdk diff --context environment=<ENV> --profile <PROFILE>
 
 # Deploy
-cdk deploy --context environment=dev --profile dev
+cdk deploy --context environment=<ENV> --profile <PROFILE>
 
 # Destroy
-cdk destroy --context environment=dev --profile dev
+cdk destroy --context environment=<ENV> --profile <PROFILE>
 ```
+
+**Note**: Replace `<ENV>` with `dev`, `staging`, or `prod` (must match `environment-config.ts`).
 
 ## Cost Estimate
 

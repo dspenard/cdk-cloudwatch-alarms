@@ -10,7 +10,7 @@ cdk.out
 # Build output
 dist/
 
-# Generated diagrams (can be regenerated)
+# Generated diagrams (temporary - diagrams/ folder contains committed versions)
 generated-diagrams/
 
 # IDE

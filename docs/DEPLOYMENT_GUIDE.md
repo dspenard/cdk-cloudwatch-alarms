@@ -82,7 +82,7 @@ Create a custom IAM policy with these permissions:
 }
 ```
 
-### For GitHub Actions (Production)
+### For GitHub Actions (other environments when not testing locally)
 
 GitHub Actions can authenticate to AWS using three methods:
 
@@ -161,6 +161,8 @@ cdk deploy --context environment=staging --profile staging
 cdk deploy --context environment=prod --profile prod
 ```
 
+**Important**: The `--context environment=<ENV>` value must match an environment defined in `lib/config/environment-config.ts`. Available environments in config now: `dev`, `staging`, `prod`.
+
 **Verify which account a profile uses**:
 ```bash
 aws sts get-caller-identity --profile dev
@@ -228,8 +230,10 @@ See [ENABLING_SERVICES.md](ENABLING_SERVICES.md) for details on each service.
 
 ### 5. Bootstrap CDK (One-time)
 ```bash
-cdk bootstrap aws://YOUR_ACCOUNT_ID/us-east-1 --profile YOUR_PROFILE --context environment=dev
+cdk bootstrap aws://YOUR_ACCOUNT_ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>
 ```
+
+**Note**: Replace `<ENV>` with your environment name from `environment-config.ts` (e.g., `dev`, `staging`, or `prod`).
 
 ### 6. Build the Project
 ```bash
@@ -238,15 +242,18 @@ npm run build
 
 ### 7. Preview Changes (Optional but Recommended)
 ```bash
-cdk diff --context environment=dev --profile YOUR_PROFILE
+cdk diff --context environment=<ENV> --profile YOUR_PROFILE
 ```
 
+**Note**: Use the same `<ENV>` value that matches your configuration in `environment-config.ts`.
 This shows you what resources will be created before actually deploying.
 
 ### 8. Deploy
 ```bash
-cdk deploy --context environment=dev --profile YOUR_PROFILE
+cdk deploy --context environment=<ENV> --profile YOUR_PROFILE
 ```
+
+**Note**: Replace `<ENV>` with your environment name (e.g., `dev`, `staging`, or `prod`).
 
 Type `y` when prompted.
 
@@ -256,9 +263,10 @@ Type `y` when prompted.
 
 **Check CloudFormation Stack:**
 ```bash
-aws cloudformation describe-stacks --stack-name monitoring-dev --profile YOUR_PROFILE --query 'Stacks[0].[StackName,StackStatus]' --output table
+aws cloudformation describe-stacks --stack-name monitoring-<ENV> --profile YOUR_PROFILE --query 'Stacks[0].[StackName,StackStatus]' --output table
 ```
-Expected: `CREATE_COMPLETE`
+
+**Note**: Replace `<ENV>` with your environment name (stack name format is `monitoring-<ENV>`).Expected: `CREATE_COMPLETE`
 
 **Check CloudWatch Alarms:**
 ```bash
@@ -521,22 +529,25 @@ Same thresholds apply to all environments (dev, staging, prod).
 npm run build
 
 # Preview changes
-cdk diff --context environment=dev --profile dev
+cdk diff --context environment=<ENV> --profile <PROFILE>
 
 # Deploy
-cdk deploy --context environment=dev --profile dev
+cdk deploy --context environment=<ENV> --profile <PROFILE>
 
 # Deploy without confirmation
-cdk deploy --context environment=dev --profile dev --require-approval never
+cdk deploy --context environment=<ENV> --profile <PROFILE> --require-approval never
 
 # Destroy (remove all resources)
-cdk destroy --context environment=dev --profile dev --force
+cdk destroy --context environment=<ENV> --profile <PROFILE> --force
 
 # View CloudFormation template
-cdk synth --context environment=dev
+cdk synth --context environment=<ENV>
 ```
 
-**Note**: The `--force` flag skips the confirmation prompt when destroying.
+**Note**: 
+- Replace `<ENV>` with your environment name from `environment-config.ts` (`dev`, `staging`, or `prod`)
+- Replace `<PROFILE>` with your AWS CLI profile name
+- The `--force` flag skips the confirmation prompt when destroying.
 
 ## Cost Estimate
 
@@ -560,8 +571,10 @@ First 10 alarms are free, then $0.10 per alarm per month.
 To completely remove all monitoring resources from an environment:
 
 ```bash
-cdk destroy --context environment=dev --profile YOUR_PROFILE --force
+cdk destroy --context environment=<ENV> --profile YOUR_PROFILE --force
 ```
+
+**Note**: Replace `<ENV>` with your environment name (`dev`, `staging`, or `prod`).
 
 **What gets deleted:**
 - All CloudWatch alarms
@@ -577,17 +590,19 @@ cdk destroy --context environment=dev --profile YOUR_PROFILE --force
 
 ```bash
 # Check CloudFormation stack is gone
-aws cloudformation describe-stacks --stack-name monitoring-dev --profile YOUR_PROFILE
-# Should return: "Stack with id monitoring-dev does not exist"
+aws cloudformation describe-stacks --stack-name monitoring-<ENV> --profile YOUR_PROFILE
+# Should return: "Stack with id monitoring-<ENV> does not exist"
 
 # Check SNS topics are gone
-aws sns list-topics --profile YOUR_PROFILE --query 'Topics[?contains(TopicArn, `dev-monitoring`)]'
+aws sns list-topics --profile YOUR_PROFILE --query 'Topics[?contains(TopicArn, `<ENV>-monitoring`)]'
 # Should return: empty list
 
 # Check CloudWatch alarms are gone
-aws cloudwatch describe-alarms --alarm-name-prefix "dev-" --profile YOUR_PROFILE
-# Should return: empty list or no dev- prefixed alarms
+aws cloudwatch describe-alarms --alarm-name-prefix "<ENV>-" --profile YOUR_PROFILE
+# Should return: empty list or no <ENV>- prefixed alarms
 ```
+
+**Note**: Replace `<ENV>` with your environment name.
 
 ### Tear Down Multiple Environments
 

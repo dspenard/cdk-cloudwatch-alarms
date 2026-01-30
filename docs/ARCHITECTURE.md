@@ -3,7 +3,7 @@
 ## Architecture Diagrams
 
 ### System Architecture
-![CDK Monitoring Architecture](../generated-diagrams/cdk-monitoring-architecture.png)
+![CDK Monitoring Architecture](../diagrams/cdk-monitoring-architecture.png)
 
 The diagram above shows the complete monitoring infrastructure:
 - **Monitored Resources**: S3, ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF
@@ -13,7 +13,7 @@ The diagram above shows the complete monitoring infrastructure:
 - **CDK/CloudFormation**: Infrastructure as Code deployment
 
 ### Deployment Flow
-![CDK Deployment Flow](../generated-diagrams/cdk-deployment-flow.png)
+![CDK Deployment Flow](../diagrams/cdk-deployment-flow.png)
 
 The deployment flow shows:
 1. Developer pushes code to Git repository
@@ -24,94 +24,53 @@ The deployment flow shows:
 
 ## High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         AWS Account (Dev)                        │
-│                                                                   │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    Monitored Resources                     │  │
-│  │                                                            │  │
-│  │  ECS Services  RDS Instances  Load Balancers  S3 Buckets │  │
-│  │  EFS Systems   FSx Systems    Step Functions  WAF ACLs   │  │
-│  │  SES           ...and more                                │  │
-│  └────────────────────────┬───────────────────────────────────┘  │
-│                           │                                       │
-│                           │ Metrics                               │
-│                           ▼                                       │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                  CloudWatch Alarms                        │  │
-│  │                                                            │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  │
-│  │  │ECS Alarms│  │RDS Alarms│  │ELB Alarms│  │S3 Alarms │ │  │
-│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘ │  │
-│  │       │             │             │             │        │  │
-│  │       └─────────────┴─────────────┴─────────────┘        │  │
-│  │                           │                               │  │
-│  └───────────────────────────┼───────────────────────────────┘  │
-│                              │                                   │
-│                              │ Alarm Notifications               │
-│                              ▼                                   │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                      SNS Topics                           │  │
-│  │                                                            │  │
-│  │  ┌─────────────────────┐  ┌─────────────────────┐       │  │
-│  │  │ Critical Alarm Topic│  │ Warning Alarm Topic │       │  │
-│  │  └──────────┬──────────┘  └──────────┬──────────┘       │  │
-│  │             │                         │                   │  │
-│  └─────────────┼─────────────────────────┼───────────────────┘  │
-│                │                         │                       │
-│                │                         │                       │
-│    ┌───────────┼─────────────────────────┼───────────┐          │
-│    │           │                         │           │          │
-│    │           ▼                         ▼           │          │
-│    │  ┌─────────────────┐      ┌─────────────────┐ │          │
-│    │  │ Lambda: Slack   │      │ Lambda: Teams   │ │          │
-│    │  │   Forwarder     │      │   Forwarder     │ │          │
-│    │  └────────┬────────┘      └────────┬────────┘ │          │
-│    │           │                         │           │          │
-│    └───────────┼─────────────────────────┼───────────┘          │
-│                │                         │                       │
-└────────────────┼─────────────────────────┼───────────────────────┘
-                 │                         │
-                 │ HTTPS                   │ HTTPS
-                 ▼                         ▼
-        ┌─────────────────┐      ┌─────────────────┐
-        │  Slack Channel  │      │  Teams Channel  │
-        │   #aws-alerts   │      │   AWS Alerts    │
-        └─────────────────┘      └─────────────────┘
+The monitoring infrastructure consists of these key components:
 
-        ┌─────────────────┐      ┌─────────────────┐
-        │   SMS Messages  │      │  Email Messages │
-        │  +1-202-555-xxx │      │ team@example.com│
-        └─────────────────┘      └─────────────────┘
-```
+**1. Monitored Resources** → Send metrics to CloudWatch
+- ECS Services, RDS Instances, Load Balancers, S3 Buckets
+- EFS Systems, FSx Systems, Step Functions, WAF ACLs, SES
+
+**2. CloudWatch Alarms** → Evaluate metrics against thresholds
+- One alarm per metric per resource
+- Configured with centralized thresholds
+
+**3. SNS Topics** → Route notifications
+- Critical Alarm Topic (for production issues)
+- Warning Alarm Topic (for non-critical issues)
+
+**4. Notification Channels** → Deliver alerts
+- Email (both critical and warning)
+- SMS (critical only)
+- Slack (via Lambda forwarder)
+- Teams (via Lambda forwarder)
+
+**Flow**: Resources → CloudWatch Metrics → Alarms → SNS Topics → Notifications
+
+See the architecture diagrams above for a visual representation.
 
 ## Multi-Environment Architecture
 
+**Deployment Flow:**
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                        GitHub Repository                          │
-│                      cdk-monitoring (main)                        │
-└────────────────────────────┬─────────────────────────────────────┘
-                             │
-                             │ Push/PR Merge
-                             ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                       GitHub Actions CI/CD                        │
-│                                                                    │
-│  Build → Test → Deploy Dev → Deploy Staging → Deploy Prod        │
-└───┬──────────────────┬──────────────────┬───────────────────┬────┘
-    │                  │                  │                   │
-    │ Auto Deploy      │ Auto Deploy      │ Manual Approval   │
-    ▼                  ▼                  ▼                   ▼
-┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
-│   Dev   │      │ Staging │      │  Prod   │      │  Prod   │
-│ Account │      │ Account │      │ Account │      │ Account │
-│ (111..1)│      │ (222..2)│      │ (333..3)│      │ (333..3)│
-│         │      │         │      │         │      │         │
-│ us-east-1│     │ us-east-1│     │ us-east-1│     │ us-east-1│
-└─────────┘      └─────────┘      └─────────┘      └─────────┘
+GitHub Repository (main branch)
+    ↓
+GitHub Actions CI/CD
+    ↓
+Build → Test → Deploy
+    ↓
+┌─────────────┬──────────────┬──────────────┐
+│   Dev       │   Staging    │   Prod       │
+│ Account     │   Account    │   Account    │
+│ (Auto)      │   (Auto)     │   (Manual)   │
+└─────────────┴──────────────┴──────────────┘
 ```
+
+**Environment Isolation:**
+- Each environment deploys to a separate AWS account
+- Same code, different configurations (account IDs, thresholds)
+- Dev: Automatic deployment on merge
+- Staging: Automatic deployment after dev succeeds
+- Prod: Manual approval required
 
 ## CDK Stack Architecture
 
@@ -230,32 +189,33 @@ CloudWatch Alarm → SNS Critical Topic → Slack (#aws-alerts-dev)
 
 ## Security Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      IAM Permissions                         │
-│                                                               │
-│  Lambda Execution Role                                       │
-│  ├── logs:CreateLogGroup                                    │
-│  ├── logs:CreateLogStream                                   │
-│  └── logs:PutLogEvents                                      │
-│                                                               │
-│  SNS Topic Policy                                            │
-│  ├── Allow CloudWatch to Publish                            │
-│  └── Allow Lambda to Subscribe                              │
-│                                                               │
-│  CloudWatch Alarms                                           │
-│  └── Allow SNS Actions on Topics                            │
-└─────────────────────────────────────────────────────────────┘
+### IAM Permissions
 
-┌─────────────────────────────────────────────────────────────┐
-│                    Secrets Management                        │
-│                                                               │
-│  Webhook URLs (Optional)                                     │
-│  ├── AWS Secrets Manager                                    │
-│  ├── Environment Variables (Lambda)                         │
-│  └── CDK Context (Not Recommended)                          │
-└─────────────────────────────────────────────────────────────┘
-```
+**Lambda Execution Role:**
+- `logs:CreateLogGroup`
+- `logs:CreateLogStream`
+- `logs:PutLogEvents`
+
+**SNS Topic Policy:**
+- Allow CloudWatch to publish alarms
+- Allow Lambda to subscribe for forwarding
+
+**CloudWatch Alarms:**
+- Allow SNS actions on notification topics
+
+### Secrets Management
+
+**Webhook URLs (for Slack/Teams):**
+- **Recommended**: AWS Secrets Manager
+- **Alternative**: Lambda environment variables
+- **Not Recommended**: CDK context or hardcoded values
+
+**Best Practices:**
+- Store sensitive values in Secrets Manager
+- Use IAM roles instead of access keys where possible
+- Enable MFA for deployment users
+- Rotate credentials regularly
+- Use least privilege policies
 
 ## Scalability Pattern
 
