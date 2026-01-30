@@ -1,8 +1,12 @@
-# DEPLOYMENT STATUS: This workflow has not been fully tested yet.
-# Local deployment has been confirmed working.
-# See docs/GITHUB_ACTIONS_SETUP.md for setup instructions.
+# GitHub Actions workflow for deploying CDK monitoring infrastructure
+# Uses OIDC authentication (no long-lived credentials needed)
 
 name: Deploy Monitoring Infrastructure
+
+# Required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
 
 on:
   push:
@@ -66,8 +70,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
           aws-region: us-east-1
 
       - name: Deploy to dev
@@ -75,7 +78,7 @@ jobs:
 
   deploy-staging:
     needs: deploy-dev
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # Disabled - enable when staging environment is ready
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -94,8 +97,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
           aws-region: us-east-1
 
       - name: Deploy to staging
@@ -103,7 +105,7 @@ jobs:
 
   deploy-prod:
     needs: deploy-staging
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    if: false  # Disabled - enable when prod environment is ready
     runs-on: ubuntu-latest
     environment: prod
     steps:
@@ -122,8 +124,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
           aws-region: us-east-1
 
       - name: Deploy to prod

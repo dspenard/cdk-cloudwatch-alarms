@@ -26,3 +26,7 @@ generated-diagrams/
 # Environment
 .env
 .env.local
+
+# GitHub Actions setup files (contain sensitive ARNs)
+.github-role-arn.txt
+github-trust-policy.json
