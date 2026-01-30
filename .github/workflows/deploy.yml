@@ -78,7 +78,7 @@ jobs:
 
   deploy-staging:
     needs: deploy-dev
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # Disabled - enable when staging environment is ready
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -105,7 +105,7 @@ jobs:
 
   deploy-prod:
     needs: deploy-staging
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    if: false  # Disabled - enable when prod environment is ready
     runs-on: ubuntu-latest
     environment: prod
     steps:
