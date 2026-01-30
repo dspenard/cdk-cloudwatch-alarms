@@ -1,0 +1,76 @@
+# GitHub Actions workflow for destroying CDK monitoring infrastructure
+# Uses OIDC authentication (no long-lived credentials needed)
+#
+# WARNING: This will permanently delete all monitoring resources for the selected environment.
+# This action cannot be undone. Use with caution.
+
+name: Destroy Monitoring Infrastructure
+
+# Required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  # Manual trigger only - no automatic destruction
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy (WARNING: This will delete all resources)'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      confirm:
+        description: 'Type "DESTROY" to confirm (case-sensitive)'
+        required: true
+        type: string
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DESTROY" ]; then
+            echo "❌ Confirmation failed. You must type 'DESTROY' exactly to proceed."
+            exit 1
+          fi
+          echo "✅ Confirmation validated"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets[format('AWS_ROLE_ARN_{0}', upper(github.event.inputs.environment))] }}
+          aws-region: us-east-1
+
+      - name: Destroy infrastructure
+        run: |
+          echo "🗑️  Destroying monitoring stack for ${{ github.event.inputs.environment }} environment..."
+          npx cdk destroy --all --context environment=${{ github.event.inputs.environment }} --force
+          echo "✅ Destruction complete"
+
+      - name: Summary
+        run: |
+          echo "## Destruction Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** Destroyed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All monitoring resources have been removed from AWS." >> $GITHUB_STEP_SUMMARY

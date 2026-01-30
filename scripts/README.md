@@ -33,9 +33,7 @@ Automated setup script for GitHub Actions OIDC authentication.
 - Saved to `.github-role-arn.txt` for reference
 
 **Documentation:**
-- Quick start: `QUICK_START_OIDC.md`
-- Detailed guide: `OIDC_SETUP_GUIDE.md`
-- Checklist: `.github-actions-checklist.md`
+- [GitHub Actions Setup](../docs/GITHUB_ACTIONS_SETUP.md) - Complete guide with quick start and detailed setup
 
 **Example:**
 ```bash
@@ -47,7 +45,7 @@ GitHub Actions OIDC Setup for AWS
 Step 1: Getting AWS Account ID...
 Enter your AWS profile name (e.g., dev, default): dev
 ✓ Account ID: 123456789012
-✓ GitHub Repo: dspenard/cdk-cloudwatch-alarms
+✓ GitHub Repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
 
 Step 2: Creating OIDC Provider...
 ✓ OIDC Provider created

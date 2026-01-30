@@ -31,6 +31,22 @@ This CDK project deploys CloudWatch alarms for AWS resources. **Only resources y
 
 Currently configured: **S3 monitoring only** (other services are commented out and ready to enable).
 
+> **⚠️ Important: This is a Template Repository**
+> 
+> This repository is designed as a reference implementation and starting point. Before you begin:
+> 
+> 1. **For local deployment only:** You can clone directly and use it
+> 2. **For GitHub Actions:** You MUST fork or create your own repository
+>    - The GitHub Actions workflow is configured for the original repo
+>    - OIDC trust policy is tied to the repository name
+>    - You need your own repo to set up GitHub Secrets
+> 
+> **How to create your own copy:**
+> - **Fork on GitHub** (recommended): Click "Fork" button, then clone your fork
+> - **Download and re-initialize**: Download ZIP, remove `.git`, create new repo
+> 
+> See [Understanding AWS Profiles](#understanding-aws-profiles) section for more details on setup.
+
 ## Prerequisites
 
 - Git
@@ -106,7 +122,7 @@ Create a custom IAM policy with these permissions:
 }
 ```
 
-### For GitHub Actions (other environments when not testing locally)
+### For GitHub Actions (other environments)
 
 GitHub Actions can authenticate to AWS using three methods:
 
@@ -131,9 +147,7 @@ GitHub Actions can authenticate to AWS using three methods:
 - Requires managing your own runner infrastructure
 - ✅ Good if you already have self-hosted runners
 
-**For this project**: The GitHub Actions workflow file is configured for **Option 2 (IAM User)** as it's the simplest to get started. For production, consider migrating to **Option 1 (OIDC)**.
-
-See [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) for detailed setup instructions for each option.
+**For this project**: The GitHub Actions workflow is configured for OIDC authentication (recommended). For alternative authentication methods, see the "Alternative Authentication Methods" section in [GitHub Actions Setup](GITHUB_ACTIONS_SETUP.md).
 
 ### Permission Breakdown
 
@@ -205,12 +219,17 @@ Before deployment, you must configure these 3 values:
 2. **Email Address** - For receiving alarm notifications
 3. **S3 Bucket Name(s)** - Existing bucket(s) you want to monitor
 
-**IAM Permissions Note**: For local testing, admin access is easiest. For production deployments and GitHub Actions, use the least privilege policy documented in the IAM Permissions section above.
+**IAM Permissions Note**: For local testing, admin access is easiest. For production deployments, use the least privilege policy documented in the IAM Permissions section above.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/dspenard/cdk-setup-for-cloudwatch-alerts.git && cd cdk-setup-for-cloudwatch-alerts
+git clone https://github.com/dspenard/cdk-cloudwatch-alarms.git && cd cdk-cloudwatch-alarms
 ```
+
+> **Planning to use GitHub Actions?** Fork this repository first instead of cloning:
+> 1. Click "Fork" on GitHub
+> 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/cdk-cloudwatch-alarms.git`
+> 3. This gives you full control and allows GitHub Actions setup
 
 ### 2. Install Dependencies
 ```bash
@@ -253,7 +272,7 @@ const s3Buckets = [
 - Uncomment the service section
 - Replace example names with your resource names
 
-See [ENABLING_SERVICES.md](ENABLING_SERVICES.md) for details on each service.
+See [ENABLING_SERVICES](ENABLING_SERVICES.md) for details on each service.
 
 **To enable other services:** Uncomment the import and code section in `monitoring-stack.ts`, update resource names, and deploy.
 
@@ -414,9 +433,7 @@ cdk deploy --context environment=prod --profile prod
 
 ## GitHub Actions (Automated Deployment)
 
-**Status**: ⚠️ Not yet tested. Local deployment has been confirmed working.
-
-After successful local deployment, set up automated deployments:
+After local deployment, you can set up automated deployments:
 
 ### 1. Create IAM User
 - Name: `github-actions-cdk-deploy`
@@ -439,9 +456,7 @@ git push origin main
 - Go to Actions tab in GitHub
 - Watch deployment run automatically
 
-See [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) for detailed instructions.
-
-**Note**: GitHub Actions deployment has not been fully tested yet. Local deployment has been confirmed working.
+See [GitHub Actions Setup](GITHUB_ACTIONS_SETUP.md) for detailed instructions.
 
 ## Notification Channels
 
@@ -511,7 +526,7 @@ aws sns subscribe \
 
 **Note**: Manual subscriptions are not tracked in version control and must be repeated for each environment.
 
-See [NOTIFICATION_SETUP.md](NOTIFICATION_SETUP.md) for details.
+See [NOTIFICATION_SETUP](NOTIFICATION_SETUP.md) for details.
 
 ## Adjusting Alarm Thresholds
 
@@ -595,15 +610,22 @@ First 10 alarms are free, then $0.10 per alarm per month.
 
 ## Tearing Down / Removing Resources
 
-### Complete Stack Removal
+### Option 1: Destroy via GitHub Actions (Recommended)
 
-To completely remove all monitoring resources from an environment:
+If you have GitHub Actions set up, you can destroy infrastructure through the GitHub UI:
 
-```bash
-cdk destroy --context environment=<ENV> --profile YOUR_PROFILE --force
-```
+1. Go to your repository's **Actions** tab
+2. Click **"Destroy Monitoring Infrastructure"** workflow
+3. Click **"Run workflow"** dropdown
+4. Select the environment to destroy (dev, staging, or prod)
+5. Type **"DESTROY"** (case-sensitive) in the confirmation field
+6. Click **"Run workflow"**
 
-**Note**: Replace `<ENV>` with your environment name (`dev`, `staging`, or `prod`).
+**Safety features:**
+- Manual trigger only (no automatic destruction)
+- Requires typing "DESTROY" to confirm
+- Uses GitHub environment protection rules (if configured)
+- Provides summary of what was destroyed
 
 **What gets deleted:**
 - All CloudWatch alarms
@@ -614,6 +636,16 @@ cdk destroy --context environment=<ENV> --profile YOUR_PROFILE --force
 **What remains:**
 - CDK bootstrap resources (S3 bucket, IAM roles) - these are shared and safe to keep
 - CloudWatch Logs (will expire based on retention settings)
+
+### Option 2: Destroy Locally via CLI
+
+To completely remove all monitoring resources from an environment:
+
+```bash
+cdk destroy --context environment=<ENV> --profile YOUR_PROFILE --force
+```
+
+**Note**: Replace `<ENV>` with your environment name (`dev`, `staging`, or `prod`).
 
 ### Verify Deletion
 
@@ -635,6 +667,10 @@ aws cloudwatch describe-alarms --alarm-name-prefix "<ENV>-" --profile YOUR_PROFI
 
 ### Tear Down Multiple Environments
 
+**Via GitHub Actions:**
+- Run the destroy workflow once for each environment
+
+**Via CLI:**
 ```bash
 # Remove dev
 cdk destroy --context environment=dev --profile dev --force
@@ -710,11 +746,11 @@ lib/
 
 ## Additional Documentation
 
-- **[ENABLING_SERVICES.md](ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, etc.
-- **[GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)** - Automated deployment setup
-- **[NOTIFICATION_SETUP.md](NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
-- **[EXAMPLES.md](EXAMPLES.md)** - Code examples for all services
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design
+- **[ENABLING_SERVICES](ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, etc.
+- **[GitHub Actions Setup](GITHUB_ACTIONS_SETUP.md)** - Automated deployment (includes alternative methods)
+- **[NOTIFICATION_SETUP](NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
+- **[EXAMPLES](EXAMPLES.md)** - Code examples for all services
+- **[ARCHITECTURE](ARCHITECTURE.md)** - System architecture and design
 
 ## Support
 

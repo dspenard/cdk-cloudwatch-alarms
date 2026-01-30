@@ -2,6 +2,8 @@
 
 CloudWatch monitoring and alerting infrastructure for multiple environments using AWS CDK with TypeScript.
 
+> **📋 This is a template repository** - Clone or fork this repo to create your own monitoring infrastructure. This repository is meant as a reference implementation and starting point for your own project.
+
 ## Table of Contents
 
 - [Quick Start](#quick-start)
@@ -16,7 +18,9 @@ CloudWatch monitoring and alerting infrastructure for multiple environments usin
 
 ## Quick Start
 
-**Deploy in 20 minutes** → See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
+> **⚠️ Before you begin:** This is a template repository. Fork or clone it to your own GitHub account before making changes. See [Setup Overview](#setup-overview) below for details.
+
+**Deploy in 20 minutes** → See [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md)
 
 The project is pre-configured for only S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
 
@@ -35,22 +39,41 @@ Before first deployment, you must configure:
 2. **Email Address** in `lib/config/environment-config.ts`
 3. **S3 Bucket Name(s)** in `lib/stacks/monitoring-stack.ts`
 
-See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for step-by-step instructions.
+See [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) for step-by-step instructions.
 
 ## What You Get
 
 - CloudWatch alarms for AWS resources (S3 at the moment, but code has been shelled out for ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF)
-- SNS notifications (SMS, Email; Slack and Teams not tested yet)
-- Multi-environment support (dev, staging, prod) but only a local deployment as been tested so far
-- GitHub Actions for automated deployment (not tested yet)
+- SNS notifications (SMS, Email, Slack, Teams)
+- Multi-environment support (dev, staging, prod)
+- **Local deployment** (default) - Deploy from your machine using AWS CLI
+- **GitHub Actions** (optional) - Automated deployment with OIDC authentication
 
-See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+See architecture diagrams in [ARCHITECTURE](docs/ARCHITECTURE.md)
 
 ## Setup Overview
 
-**This is merely a quick summary** - Please see [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for complete step-by-step instructions.
+> **Important:** This is a template repository. You should create your own copy before making changes:
+> 
+> **Option 1: Fork this repository** (recommended for GitHub Actions)
+> - Click "Fork" button on GitHub
+> - Clone your fork: `git clone https://github.com/YOUR_USERNAME/cdk-cloudwatch-alarms.git`
+> - This gives you your own repository with full control
+> 
+> **Option 2: Download and create new repo**
+> - Download as ZIP or clone: `git clone https://github.com/dspenard/cdk-cloudwatch-alarms.git`
+> - Remove git history: `rm -rf .git`
+> - Create your own repo: `git init && git add . && git commit -m "Initial commit"`
+> - Push to your own GitHub repository
 
-1. **Clone**: `git clone https://github.com/dspenard/cdk-setup-for-cloudwatch-alerts.git && cd cdk-setup-for-cloudwatch-alerts`
+**This is merely a quick summary** - Please see [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) for complete step-by-step instructions.
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/dspenard/cdk-cloudwatch-alarms.git && cd cdk-cloudwatch-alarms
+```
+
+> **Note:** If you plan to use GitHub Actions, fork this repository first instead of cloning directly. See [Setup Overview](#setup-overview) above.
 2. **Install**: `npm install`
 3. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
 4. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
@@ -73,7 +96,7 @@ See architecture diagrams in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 To enable a service: Uncomment the import and code section, update resource names, deploy.
 
-See [docs/ENABLING_SERVICES.md](docs/ENABLING_SERVICES.md) for details.
+See [ENABLING_SERVICES](docs/ENABLING_SERVICES.md) for details.
 
 ## Project Structure
 
@@ -95,20 +118,20 @@ scripts/
 ## Documentation
 
 **Getting Started:**
-- **[docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Complete deployment guide with all steps
-- **[docs/ENABLING_SERVICES.md](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
-- **[docs/EXAMPLES.md](docs/EXAMPLES.md)** - Code examples for all supported services
+- **[DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md)** - Complete local deployment guide (start here!)
+- **[ENABLING_SERVICES](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
+- **[EXAMPLES](docs/EXAMPLES.md)** - Code examples for all supported services
 
-**Automation & CI/CD:**
-- **[docs/GITHUB_ACTIONS_SETUP.md](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with GitHub Actions
+**Automation & CI/CD (Optional):**
+- **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with OIDC (includes quick start and alternative methods)
 
 **Notifications:**
-- **[docs/NOTIFICATION_SETUP.md](docs/NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
-- **[docs/SLACK_INTEGRATION.md](docs/SLACK_INTEGRATION.md)** - Detailed Slack integration guide
-- **[docs/TEAMS_INTEGRATION.md](docs/TEAMS_INTEGRATION.md)** - Detailed Teams integration guide
+- **[NOTIFICATION_SETUP](docs/NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
+- **[SLACK_INTEGRATION](docs/SLACK_INTEGRATION.md)** - Detailed Slack integration guide
+- **[TEAMS_INTEGRATION](docs/TEAMS_INTEGRATION.md)** - Detailed Teams integration guide
 
 **Architecture:**
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture and design decisions
+- **[ARCHITECTURE](docs/ARCHITECTURE.md)** - System architecture and design decisions
 
 ## Common Commands
 
@@ -122,11 +145,13 @@ cdk diff --context environment=<ENV> --profile <PROFILE>
 # Deploy
 cdk deploy --context environment=<ENV> --profile <PROFILE>
 
-# Destroy
-cdk destroy --context environment=<ENV> --profile <PROFILE>
+# Destroy (remove all resources)
+cdk destroy --context environment=<ENV> --profile <PROFILE> --force
 ```
 
 **Note**: Replace `<ENV>` with `dev`, `staging`, or `prod` (must match `environment-config.ts`).
+
+**GitHub Actions**: You can also deploy and destroy via GitHub Actions workflows. See [GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md) for details.
 
 ## Cost Estimate
 
@@ -137,6 +162,6 @@ cdk destroy --context environment=<ENV> --profile <PROFILE>
 ## Support
 
 For issues or questions:
-- Check [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) troubleshooting section
+- Check [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) troubleshooting section
 - Review CloudFormation events in AWS Console
 - Check Lambda CloudWatch Logs for notification issues

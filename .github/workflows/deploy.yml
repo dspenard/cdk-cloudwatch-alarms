@@ -1,5 +1,9 @@
 # GitHub Actions workflow for deploying CDK monitoring infrastructure
 # Uses OIDC authentication (no long-lived credentials needed)
+#
+# NOTE: Automatic deployments are disabled by default.
+# To enable automatic deployments on push to main, uncomment the 'push' and 'pull_request' sections below.
+# For setup instructions, see: docs/GITHUB_ACTIONS_SETUP.md
 
 name: Deploy Monitoring Infrastructure
 
@@ -9,12 +13,15 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  # Automatic triggers are commented out - uncomment to enable
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
+  
+  # Manual trigger is always available
   workflow_dispatch:
     inputs:
       environment:

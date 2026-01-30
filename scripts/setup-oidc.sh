@@ -2,6 +2,9 @@
 # GitHub Actions OIDC Setup Script for AWS
 # This script sets up OIDC authentication for GitHub Actions to deploy CDK stacks
 
+# IMPORTANT: If you forked this repository, update the GITHUB_ORG and GITHUB_REPO variables below
+# to match YOUR repository (not the original template)
+
 set -e
 
 # Colors for output
@@ -25,7 +28,16 @@ echo ""
 # GitHub repository info
 GITHUB_ORG="dspenard"
 GITHUB_REPO="cdk-cloudwatch-alarms"
+
+echo -e "${YELLOW}⚠️  IMPORTANT: If you forked this repo, update GITHUB_ORG and GITHUB_REPO above!${NC}"
 echo -e "${GREEN}✓ GitHub Repo: $GITHUB_ORG/$GITHUB_REPO${NC}"
+echo ""
+read -p "Is this YOUR repository? (y/n): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${RED}Please edit this script and update GITHUB_ORG and GITHUB_REPO variables${NC}"
+    exit 1
+fi
 echo ""
 
 # Step 2: Create OIDC Provider
