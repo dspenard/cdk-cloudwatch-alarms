@@ -35,23 +35,27 @@ export class AlertTopics extends Construct {
 
     // Add SMS subscriptions if provided
     if (props.smsPhoneNumbers && props.smsPhoneNumbers.length > 0) {
-      props.smsPhoneNumbers.forEach((phoneNumber, index) => {
-        this.criticalAlarmTopic.addSubscription(
-          new subscriptions.SmsSubscription(phoneNumber)
-        );
-      });
+      props.smsPhoneNumbers
+        .filter(phoneNumber => phoneNumber && phoneNumber.trim() !== '')
+        .forEach((phoneNumber, index) => {
+          this.criticalAlarmTopic.addSubscription(
+            new subscriptions.SmsSubscription(phoneNumber)
+          );
+        });
     }
 
     // Add email subscriptions if provided
     if (props.emailAddresses && props.emailAddresses.length > 0) {
-      props.emailAddresses.forEach((email, index) => {
-        this.criticalAlarmTopic.addSubscription(
-          new subscriptions.EmailSubscription(email)
-        );
-        this.warningAlarmTopic.addSubscription(
-          new subscriptions.EmailSubscription(email)
-        );
-      });
+      props.emailAddresses
+        .filter(email => email && email.trim() !== '')
+        .forEach((email, index) => {
+          this.criticalAlarmTopic.addSubscription(
+            new subscriptions.EmailSubscription(email)
+          );
+          this.warningAlarmTopic.addSubscription(
+            new subscriptions.EmailSubscription(email)
+          );
+        });
     }
 
     // Output the topic ARNs for reference
