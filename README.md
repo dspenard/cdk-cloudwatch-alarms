@@ -1,167 +1,142 @@
-# CDK Monitoring and Alerting Infrastructure
+# CloudWatch Monitoring and Alerting with AWS CDK
 
-CloudWatch monitoring and alerting infrastructure for multiple environments using AWS CDK with TypeScript.
-
-> **📋 This is a template repository** - Clone or fork this repo to create your own monitoring infrastructure. This repository is meant as a reference implementation and starting point for your own project.
+An AWS CDK template for deploying CloudWatch alarms and alerting infrastructure across multiple environments. This project demonstrates best practices for infrastructure-as-code monitoring using TypeScript and AWS CDK, with support for multiple AWS services and notification channels.
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [What You Get](#what-you-get)
-- [Setup Overview](#setup-overview)
-- [Key Principle](#key-principle)
-- [Project Structure](#project-structure)
+- [Architecture](#architecture)
 - [Documentation](#documentation)
-- [Common Commands](#common-commands)
-- [Cost Estimate](#cost-estimate)
+- [Contributing](#contributing)
+- [License](#license)
 - [Support](#support)
 
 ## Quick Start
 
-> **⚠️ Before you begin:** This is a template repository. Fork or clone it to your own GitHub account before making changes. See [Setup Overview](#setup-overview) below for details.
+> **⚠️ Before you begin:** This repository is meant as a reference implementation and starting point for your own project.  If you want to use the optional GitHub Actions implementation, then please clone or fork to your own GitHub account before making changes to kick off the CI/CD process.  Running this implementation locally without GitHub Actions is perfectly fine without having to push your project to GitHub.
 
-**Deploy in 20 minutes** → See [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md)
+**Prerequisites:** Node.js 18+, AWS CLI configured, AWS CDK CLI
 
 The project is pre-configured for only S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
 
-### Prerequisites
+**Deploy in 20 minutes** → See [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) for step-by-step instructions.
 
-- Git
-- Node.js 18+
-- AWS CLI configured
-- AWS CDK CLI: `npm install -g aws-cdk`
+## Architecture
 
-### Required Configuration (3 values)
+### What You Get
 
-Before first deployment, you must configure:
-
-1. **AWS Account ID** in `lib/config/environment-config.ts`
-2. **Email Address** in `lib/config/environment-config.ts`
-3. **S3 Bucket Name(s)** in `lib/stacks/monitoring-stack.ts`
-
-See [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) for step-by-step instructions.
-
-## What You Get
-
-- CloudWatch alarms for AWS resources (S3 at the moment, but code has been shelled out for ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF)
+- CloudWatch alarms for AWS resources (S3 at the moment, but code has been stubbed out for ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF)
 - SNS notifications (SMS, Email, Slack, Teams)
 - Multi-environment support (dev, staging, prod)
-- **Local deployment** (default) - Deploy from your machine using AWS CLI
-- **GitHub Actions** (optional) - Automated deployment with OIDC authentication
+- Local deployment (default) - Deploy from your machine using AWS CLI
+- GitHub Actions (optional) - Automated deployment with OIDC authentication
 
-See architecture diagrams in [ARCHITECTURE](docs/ARCHITECTURE.md)
+See full details and diagrams in [Architecture](docs/ARCHITECTURE.md).
 
-## Setup Overview
+### Key Principle
 
-> **Important:** This is a template repository. You should create your own copy before making changes:
-> 
-> **Option 1: Fork this repository** (recommended for GitHub Actions)
-> - Click "Fork" button on GitHub
-> - Clone your fork: `git clone https://github.com/YOUR_USERNAME/cdk-cloudwatch-alarms.git`
-> - This gives you your own repository with full control
-> 
-> **Option 2: Download and create new repo**
-> - Download as ZIP or clone: `git clone https://github.com/dspenard/cdk-cloudwatch-alarms.git`
-> - Remove git history: `rm -rf .git`
-> - Create your own repo: `git init && git add . && git commit -m "Initial commit"`
-> - Push to your own GitHub repository
-
-**This is merely a quick summary** - Please see [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) for complete step-by-step instructions.
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/dspenard/cdk-cloudwatch-alarms.git && cd cdk-cloudwatch-alarms
-```
-
-> **Note:** If you plan to use GitHub Actions, fork this repository first instead of cloning directly. See [Setup Overview](#setup-overview) above.
-2. **Install**: `npm install`
-3. **Configure**: Add AWS account ID and email to `lib/config/environment-config.ts`
-4. **Add Resources**: Edit `lib/stacks/monitoring-stack.ts` with your resource names
-5. **Bootstrap**: `cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE --context environment=<ENV>`
-6. **Deploy**: `npm run build && cdk deploy --context environment=<ENV> --profile YOUR_PROFILE`
-7. **Confirm Email**: Check inbox for AWS SNS confirmation email and click the link
-
-**Environment Context**: Replace `<ENV>` with your environment name from `environment-config.ts` (`dev`, `staging`, or `prod`).
-
-**IAM Permissions**: Your AWS profile needs CloudFormation, CloudWatch, SNS, and IAM permissions. For local testing, admin access is easiest. For production, use least privilege policy (see deployment guide).
-
-**Note**: AWS profile is specified via `--profile` flag in commands, not in code.
-
-## Key Principle
-
-**Only resources uncommented in `monitoring-stack.ts` will be deployed.**
+This project can be easily extended for monitoring additional AWS resources beyond the initial S3 example.
 
 - **Currently active**: S3 monitoring
-- **Ready to enable**: ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF
+- **Ready to enable**: ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF (but full testing not done)
+- Other services to be added in repo updates
 
-To enable a service: Uncomment the import and code section, update resource names, deploy.
+**Only resources uncommented in `monitoring-stack.ts` will be deployed.**  
+To enable a service: Uncomment the import and code section, update resource names, and deploy.
 
-See [ENABLING_SERVICES](docs/ENABLING_SERVICES.md) for details.
+See [Enabling Services](docs/ENABLING_SERVICES.md) for details.
 
-## Project Structure
+### Project Structure
 
 ```
-lib/
-├── config/
-│   ├── environment-config.ts    ← Add your AWS account IDs
-│   └── alarm-thresholds.ts      ← Adjust alarm thresholds (optional)
-├── stacks/
-│   └── monitoring-stack.ts      ← Configure which resources to monitor
-└── constructs/
-    ├── alarms/                  ← Alarm logic for each service
-    └── notifications/           ← SNS, Slack, Teams integration
-
-scripts/
-└── setup-oidc.sh                ← Automated GitHub Actions OIDC setup
+.
+├── .github/
+│   └── workflows/
+│       ├── deploy.yml           ← GitHub Actions deployment workflow
+│       └── destroy.yml          ← GitHub Actions destroy workflow
+├── bin/
+│   └── app.ts                   ← CDK app entry point
+├── diagrams/
+│   ├── cdk-deployment-flow.png  ← Deployment flow diagram
+│   └── cdk-monitoring-architecture.png  ← System architecture diagram
+├── docs/
+│   ├── ARCHITECTURE.md          ← System architecture and design
+│   ├── DEPLOYMENT_GUIDE.md      ← Complete deployment instructions
+│   ├── ENABLING_SERVICES.md     ← How to enable additional AWS services
+│   ├── EXAMPLES.md              ← Code examples for all services
+│   ├── GITHUB_ACTIONS_SETUP.md  ← GitHub Actions OIDC setup guide
+│   ├── NOTIFICATION_SETUP.md    ← SMS, Email, Slack, Teams setup
+│   ├── SLACK_INTEGRATION.md     ← Detailed Slack integration
+│   └── TEAMS_INTEGRATION.md     ← Detailed Teams integration
+├── lib/
+│   ├── config/
+│   │   ├── environment-config.ts    ← Add your AWS account IDs and settings
+│   │   └── alarm-thresholds.ts      ← Adjust alarm thresholds (optional)
+│   ├── stacks/
+│   │   └── monitoring-stack.ts      ← Configure which resources to monitor
+│   └── constructs/
+│       ├── alarms/                  ← Alarm logic for each service
+│       └── notifications/           ← SNS, Slack, Teams integration
+├── scripts/
+│   └── setup-oidc.sh                ← Automated GitHub Actions OIDC setup
+├── .gitignore                       ← Git ignore rules
+├── cdk.json                         ← CDK configuration
+├── LICENSE                          ← MIT License
+├── package.json                     ← Node.js dependencies
+├── README.md                        ← This file
+└── tsconfig.json                    ← TypeScript configuration
 ```
 
 ## Documentation
 
 **Getting Started:**
-- **[DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md)** - Complete local deployment guide (start here!)
-- **[ENABLING_SERVICES](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
-- **[EXAMPLES](docs/EXAMPLES.md)** - Code examples for all supported services
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Complete deployment guide
+- **[Enabling Services](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
+- **[Examples](docs/EXAMPLES.md)** - Code examples for all supported services
 
 **Automation & CI/CD (Optional):**
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with OIDC (includes quick start and alternative methods)
 
 **Notifications:**
-- **[NOTIFICATION_SETUP](docs/NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
-- **[SLACK_INTEGRATION](docs/SLACK_INTEGRATION.md)** - Detailed Slack integration guide
-- **[TEAMS_INTEGRATION](docs/TEAMS_INTEGRATION.md)** - Detailed Teams integration guide
+- **[Notification Setup](docs/NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
+- **[Slack Integration](docs/SLACK_INTEGRATION.md)** - Detailed Slack integration guide
+- **[Teams Integration](docs/TEAMS_INTEGRATION.md)** - Detailed Teams integration guide
 
 **Architecture:**
-- **[ARCHITECTURE](docs/ARCHITECTURE.md)** - System architecture and design decisions
+- **[Architecture](docs/ARCHITECTURE.md)** - System architecture and design decisions
 
-## Common Commands
+## Contributing
 
-```bash
-# Build
-npm run build
+Contributions are welcome! Here's how you can help:
 
-# Preview changes
-cdk diff --context environment=<ENV> --profile <PROFILE>
+1. **Fork the repository** and create your branch from `main`
+2. **Make your changes** and test thoroughly
+3. **Update documentation** if you're adding features or changing behavior
+4. **Submit a pull request** with a clear description of your changes
 
-# Deploy
-cdk deploy --context environment=<ENV> --profile <PROFILE>
+### Guidelines
 
-# Destroy (remove all resources)
-cdk destroy --context environment=<ENV> --profile <PROFILE> --force
-```
+- Follow the existing code style and structure
+- Add comments for complex logic
+- Update relevant documentation
+- Test your changes in a dev environment before submitting
+- Keep pull requests focused on a single feature or fix
 
-**Note**: Replace `<ENV>` with `dev`, `staging`, or `prod` (must match `environment-config.ts`).
+### Reporting Issues
 
-**GitHub Actions**: You can also deploy and destroy via GitHub Actions workflows. See [GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md) for details.
+If you find a bug or have a feature request:
+- Check if the issue already exists
+- Provide detailed information about the problem
+- Include steps to reproduce for bugs
+- Suggest solutions if you have ideas
 
-## Cost Estimate
+## License
 
-- **S3 only (10 buckets)**: ~$1.50/month
-- **Multiple services (~100 resources)**: ~$25/month
-- First 10 alarms free, then $0.10 per alarm per month
+This project is licensed under the MIT License - see the [License](LICENSE) file for details.
 
 ## Support
 
 For issues or questions:
-- Check [DEPLOYMENT_GUIDE](docs/DEPLOYMENT_GUIDE.md) troubleshooting section
+- Check [Deployment Guide troubleshooting section](docs/DEPLOYMENT_GUIDE.md#troubleshooting)
 - Review CloudFormation events in AWS Console
-- Check Lambda CloudWatch Logs for notification issues
+- Check Lambda CloudWatch Logs for Slack/Teams notification issues (if configured)

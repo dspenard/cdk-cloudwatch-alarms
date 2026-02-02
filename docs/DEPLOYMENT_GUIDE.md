@@ -272,7 +272,7 @@ const s3Buckets = [
 - Uncomment the service section
 - Replace example names with your resource names
 
-See [ENABLING_SERVICES](ENABLING_SERVICES.md) for details on each service.
+See [Enabling Services](ENABLING_SERVICES.md) for details on each service.
 
 **To enable other services:** Uncomment the import and code section in `monitoring-stack.ts`, update resource names, and deploy.
 
@@ -530,7 +530,7 @@ aws sns subscribe \
 
 **Note**: Manual subscriptions are not tracked in version control and must be repeated for each environment.
 
-See [NOTIFICATION_SETUP](NOTIFICATION_SETUP.md) for details.
+See [Notification Setup](NOTIFICATION_SETUP.md) for details.
 
 ## Adjusting Alarm Thresholds
 
@@ -750,11 +750,11 @@ lib/
 
 ## Additional Documentation
 
-- **[ENABLING_SERVICES](ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, etc.
+- **[Enabling Services](ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, etc.
 - **[GitHub Actions Setup](GITHUB_ACTIONS_SETUP.md)** - Automated deployment (includes alternative methods)
-- **[NOTIFICATION_SETUP](NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
-- **[EXAMPLES](EXAMPLES.md)** - Code examples for all services
-- **[ARCHITECTURE](ARCHITECTURE.md)** - System architecture and design
+- **[Notification Setup](NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup
+- **[Examples](EXAMPLES.md)** - Code examples for all services
+- **[Architecture](ARCHITECTURE.md)** - System architecture and design
 
 ## Support
 
