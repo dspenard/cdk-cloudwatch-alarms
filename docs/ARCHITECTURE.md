@@ -4,36 +4,25 @@
 
 - [Architecture Diagrams](#architecture-diagrams)
 - [High-Level Architecture](#high-level-architecture)
-- [Multi-Environment Architecture](#multi-environment-architecture)
-- [CDK Stack Architecture](#cdk-stack-architecture)
-- [Alarm Flow](#alarm-flow)
-- [Notification Flow](#notification-flow)
+- [Multi-Environment Setup](#multi-environment-setup)
+- [Notification Routing](#notification-routing)
 - [Security Architecture](#security-architecture)
-- [Scalability Pattern](#scalability-pattern)
-- [Design Decisions](#design-decisions)
-- [Technology Stack](#technology-stack)
+- [Cost Breakdown](#cost-breakdown)
+- [Operational Health](#operational-health)
 
 ## Architecture Diagrams
 
 ### System Architecture
+
+This diagram shows the complete monitoring infrastructure including monitored resources (S3, ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF), CloudWatch metrics and alarms, SNS topic routing, and notification channels (Email, SMS, Slack, Teams). Currently, only S3 monitoring is active by default; other services are stubbed out in the CDK code and ready to enable. Slack and Teams integrations have not been tested yet.
+
 ![CDK Monitoring Architecture](../diagrams/cdk-monitoring-architecture.png)
 
-The diagram above shows the complete monitoring infrastructure:
-- **Monitored Resources**: S3, ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF
-- **CloudWatch**: Collects metrics and triggers alarms based on thresholds
-- **SNS Topics**: Routes notifications to different channels (Critical vs Warning)
-- **Notification Channels**: Email, SMS, Slack, and Teams integrations (Slack and Teams not yet tested)
-- **CDK/CloudFormation**: Infrastructure as Code deployment
-
 ### Deployment Flow
-![CDK Deployment Flow](../diagrams/cdk-deployment-flow.png)
 
-The deployment flow shows:
-1. Developer pushes code to Git repository
-2. GitHub Actions triggers automated build and test
-3. CDK deploys infrastructure to AWS
-4. CloudFormation provisions all monitoring resources
-5. Resources are ready to monitor and alert
+This diagram illustrates the deployment process from code push through GitHub Actions, CDK deployment, CloudFormation provisioning, and final resource readiness for monitoring.
+
+![CDK Deployment Flow](../diagrams/cdk-deployment-flow.png)
 
 ## High-Level Architecture
 
@@ -44,8 +33,16 @@ The monitoring infrastructure consists of these key components:
 - EFS Systems, FSx Systems, Step Functions, WAF ACLs, SES
 
 **2. CloudWatch Alarms** → Evaluate metrics against thresholds
-- One alarm per metric per resource
-- Configured with centralized thresholds
+- ECS: 3 alarms per service (CPU, memory, task count)
+- RDS: 4 alarms per instance (CPU, storage, read/write latency)
+- ELB: 4 alarms per load balancer (response time, unhealthy hosts, 5xx errors)
+- S3: 2 alarms per bucket (size, object count)
+- EFS: 2 alarms per file system (burst credits, IO limit)
+- FSx: 2 alarms per file system (storage utilization, free storage)
+- SES: 2 alarms per account (bounce rate, complaint rate)
+- Step Functions: 2 alarms per state machine (failed, timed out)
+- WAF: 1 alarm per web ACL (blocked requests)
+- Configured with centralized thresholds in `lib/config/alarm-thresholds.ts`
 
 **3. SNS Topics** → Route notifications
 - Critical Alarm Topic (for production issues)
@@ -54,14 +51,14 @@ The monitoring infrastructure consists of these key components:
 **4. Notification Channels** → Deliver alerts
 - Email (both critical and warning)
 - SMS (critical only)
-- Slack (via Lambda forwarder)
-- Teams (via Lambda forwarder)
+- Slack (via Lambda forwarder - optional)
+- Teams (via Lambda forwarder - optional)
 
 **Flow**: Resources → CloudWatch Metrics → Alarms → SNS Topics → Notifications
 
-See the architecture diagrams above for a visual representation.
+## Multi-Environment Setup
 
-## Multi-Environment Architecture
+This is an example deployment pattern using three environments (dev, staging, prod) with separate AWS accounts, which is the recommended best practice for environment isolation.
 
 **Deployment Flow:**
 ```
@@ -83,101 +80,9 @@ Build → Test → Deploy
 - Same code, different configurations (account IDs, thresholds)
 - Dev: Automatic deployment on merge
 - Staging: Automatic deployment after dev succeeds
-- Prod: Manual approval required
+- Prod: Manual approval is required in this example
 
-## CDK Stack Architecture
-
-```
-MonitoringStack
-├── AlertTopics (Construct)
-│   ├── CriticalAlarmTopic (SNS Topic)
-│   │   ├── SMS Subscriptions
-│   │   └── Email Subscriptions
-│   └── WarningAlarmTopic (SNS Topic)
-│       ├── SMS Subscriptions
-│       └── Email Subscriptions
-│
-├── SlackForwarder (Construct) [Optional]
-│   ├── Lambda Function
-│   └── SNS Subscription
-│
-├── TeamsForwarder (Construct) [Optional]
-│   ├── Lambda Function
-│   └── SNS Subscription
-│
-├── EcsAlarms (Construct) [Multiple Instances]
-│   ├── CPU Utilization Alarm
-│   ├── Memory Utilization Alarm
-│   └── Running Task Count Alarm
-│
-├── RdsAlarms (Construct) [Multiple Instances]
-│   ├── CPU Utilization Alarm
-│   ├── Free Storage Space Alarm
-│   ├── Read Latency Alarm
-│   └── Write Latency Alarm
-│
-├── ElbAlarms (Construct) [Multiple Instances]
-│   ├── Target Response Time Alarm
-│   ├── Unhealthy Host Count Alarm
-│   ├── HTTP 5xx Target Alarm
-│   └── HTTP 5xx ELB Alarm
-│
-├── EfsAlarms (Construct) [Multiple Instances]
-│   ├── Burst Credit Balance Alarm
-│   └── Percent IO Limit Alarm
-│
-├── FsxAlarms (Construct) [Multiple Instances]
-│   ├── Storage Capacity Utilization Alarm
-│   └── Free Storage Capacity Alarm
-│
-├── S3Alarms (Construct) [Multiple Instances]
-│   ├── Bucket Size Alarm
-│   └── Number of Objects Alarm
-│
-├── SesAlarms (Construct) [One per Account]
-│   ├── Bounce Rate Alarm
-│   └── Complaint Rate Alarm
-│
-├── StepFunctionsAlarms (Construct) [Multiple Instances]
-│   ├── Executions Failed Alarm
-│   └── Executions Timed Out Alarm
-│
-└── WafAlarms (Construct) [Multiple Instances]
-    └── Blocked Requests Alarm
-```
-
-## Data Flow
-
-### 1. Alarm Trigger Flow
-```
-Resource Metric → CloudWatch → Alarm Evaluation → State Change
-                                                        ↓
-                                                   SNS Topic
-                                                        ↓
-                                    ┌───────────────────┴───────────────────┐
-                                    ↓                   ↓                   ↓
-                              SMS Delivery      Lambda Function      Email Delivery
-                                    ↓                   ↓
-                              Phone Number      Slack/Teams Webhook
-```
-
-### 2. Deployment Flow
-```
-Developer → Git Push → GitHub Actions → CDK Deploy → CloudFormation
-                                                           ↓
-                                                    Create/Update:
-                                                    - SNS Topics
-                                                    - Lambda Functions
-                                                    - CloudWatch Alarms
-                                                    - IAM Roles
-```
-
-### 3. Configuration Flow
-```
-environment-config.ts → CDK App → MonitoringStack → Constructs
-                                                          ↓
-alarm-thresholds.ts → Alarm Constructs → CloudWatch Alarms
-```
+> **Note:** Refer to [Multiple Environments setup](GITHUB_ACTIONS_SETUP.md#multiple-environments) guide for details.
 
 ## Notification Routing
 
@@ -230,46 +135,6 @@ CloudWatch Alarm → SNS Critical Topic → Slack (#aws-alerts-dev)
 - Rotate credentials regularly
 - Use least privilege policies
 
-## Scalability Pattern
-
-### For ~100 Resources
-
-```typescript
-// Define resources in arrays
-const ecsServices = [
-  { cluster: 'api-cluster', service: 'service-1' },
-  { cluster: 'api-cluster', service: 'service-2' },
-  // ... 98 more
-];
-
-// Loop to create alarms
-ecsServices.forEach(({ cluster, service }) => {
-  new EcsAlarms(this, `${service}Alarms`, {
-    environment,
-    clusterName: cluster,
-    serviceName: service,
-    alarmTopic: alertTopics.criticalAlarmTopic,
-  });
-});
-```
-
-### Resource Organization
-
-```
-100 Resources
-├── 20 ECS Services → 60 Alarms (3 per service)
-├── 15 RDS Instances → 60 Alarms (4 per instance)
-├── 10 Load Balancers → 40 Alarms (4 per LB)
-├── 20 S3 Buckets → 40 Alarms (2 per bucket)
-├── 10 EFS Systems → 20 Alarms (2 per system)
-├── 5 FSx Systems → 10 Alarms (2 per system)
-├── 10 Step Functions → 20 Alarms (2 per function)
-├── 5 WAF ACLs → 5 Alarms (1 per ACL)
-└── 1 SES Account → 2 Alarms
-                    ─────────────
-                    257 Total Alarms
-```
-
 ## Cost Breakdown
 
 ```
@@ -291,32 +156,25 @@ Lambda
 Total Monthly Cost: ~$25-30/month (excluding SMS)
 ```
 
-## High Availability
+## Operational Health
 
-- **SNS**: Multi-AZ by default
-- **Lambda**: Automatic scaling and redundancy
-- **CloudWatch**: Highly available service
-- **No single point of failure**
+To ensure the monitoring system itself is healthy:
 
-## Disaster Recovery
+**Lambda Functions:**
+- CloudWatch Logs capture all execution details for debugging
+- Lambda Insights provide performance metrics
+- Dead Letter Queues catch failed notification attempts
 
-- **Infrastructure as Code**: Entire setup in Git
-- **Multi-Region**: Can deploy to multiple regions
-- **Backup**: Git repository serves as backup
-- **Recovery Time**: ~10 minutes to redeploy
+**SNS Topics:**
+- CloudWatch Metrics track message delivery success/failure rates
+- Failed delivery notifications alert when messages can't be sent
 
-## Monitoring the Monitoring
+**CloudWatch Alarms:**
+- Composite alarms can monitor the health of other alarms
+- Alarm state changes are logged for audit trails
 
-```
-Lambda Functions
-├── CloudWatch Logs for debugging
-├── Lambda Insights for performance
-└── Dead Letter Queue for failed messages
-
-SNS Topics
-├── CloudWatch Metrics for delivery
-└── Failed delivery notifications
-
-CloudWatch Alarms
-└── Composite alarms for alarm health
-```
+**Best Practices:**
+- Set up alarms on Lambda errors for Slack/Teams forwarders
+- Monitor SNS delivery failure rates
+- Review CloudWatch Logs regularly for Lambda execution issues
+- Use CloudWatch Dashboards to visualize monitoring system health

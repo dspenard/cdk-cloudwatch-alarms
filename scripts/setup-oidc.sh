@@ -151,7 +151,3 @@ echo ""
 echo -e "${YELLOW}Role ARN for workflow:${NC}"
 echo -e "${GREEN}arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}${NC}"
 echo ""
-
-# Save role ARN to file for easy reference
-echo "arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}" > .github-role-arn.txt
-echo -e "${GREEN}✓ Role ARN saved to .github-role-arn.txt${NC}"

@@ -17,7 +17,7 @@ An AWS CDK template for deploying CloudWatch alarms and alerting infrastructure 
 
 **Prerequisites:** Node.js 18+, AWS CLI configured, AWS CDK CLI
 
-The project is pre-configured for only S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `monitoring-stack.ts` will be deployed.**
+The project is pre-configured for only S3 monitoring as a simple, focused demonstration. **Only resources you uncomment in `lib/stacks/monitoring-stack.ts` will be deployed.**
 
 **Deploy in 20 minutes** → See [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) for step-by-step instructions.
 
@@ -41,7 +41,7 @@ This project can be easily extended for monitoring additional AWS resources beyo
 - **Ready to enable**: ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF (but full testing not done)
 - Other services to be added in repo updates
 
-**Only resources uncommented in `monitoring-stack.ts` will be deployed.**  
+**Only resources uncommented in `lib/stacks/monitoring-stack.ts` will be deployed.**  
 To enable a service: Uncomment the import and code section, update resource names, and deploy.
 
 See [Enabling Services](docs/ENABLING_SERVICES.md) for details.
@@ -63,7 +63,6 @@ See [Enabling Services](docs/ENABLING_SERVICES.md) for details.
 │   ├── ARCHITECTURE.md          ← System architecture and design
 │   ├── DEPLOYMENT_GUIDE.md      ← Complete deployment instructions
 │   ├── ENABLING_SERVICES.md     ← How to enable additional AWS services
-│   ├── EXAMPLES.md              ← Code examples for all services
 │   ├── GITHUB_ACTIONS_SETUP.md  ← GitHub Actions OIDC setup guide
 │   ├── NOTIFICATION_SETUP.md    ← SMS, Email, Slack, Teams setup
 │   ├── SLACK_INTEGRATION.md     ← Detailed Slack integration
@@ -92,7 +91,6 @@ See [Enabling Services](docs/ENABLING_SERVICES.md) for details.
 **Getting Started:**
 - **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[Enabling Services](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
-- **[Examples](docs/EXAMPLES.md)** - Code examples for all supported services
 
 **Automation & CI/CD (Optional):**
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with OIDC (includes quick start and alternative methods)

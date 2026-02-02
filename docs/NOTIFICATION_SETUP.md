@@ -16,15 +16,14 @@ Quick reference for setting up all notification channels.
 - [Cost Considerations](#cost-considerations)
 - [Security Best Practices](#security-best-practices)
 - [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
 
 ## Overview
 
 This CDK project supports multiple notification channels:
-- **SMS** - Direct text messages via SNS
-- **Email** - Email notifications via SNS
-- **Slack** - Slack channel notifications
-- **Microsoft Teams** - Teams channel notifications
+- **SMS** - Direct text messages via SNS (tested)
+- **Email** - Email notifications via SNS (tested)
+- **Slack** - Slack channel notifications (not tested - reference implementation)
+- **Microsoft Teams** - Teams channel notifications (not tested - reference implementation)
 
 You can enable any combination of these channels.
 
@@ -84,7 +83,7 @@ Manual subscriptions are not tracked in version control and must be repeated for
 3. Create channel configuration
 4. Select SNS topics created by this stack
 
-**Option B: Webhook (Included in code)**
+**Option B: Webhook (Reference Implementation)**
 1. Create Slack incoming webhook: https://api.slack.com/apps
 2. Add to `lib/config/environment-config.ts`:
 
@@ -96,7 +95,7 @@ dev: {
 },
 ```
 
-See `SLACK_INTEGRATION.md` for detailed instructions.
+See [Slack Integration](SLACK_INTEGRATION.md) for detailed instructions.
 
 ### 4. Microsoft Teams Notifications
 
@@ -108,7 +107,7 @@ See `SLACK_INTEGRATION.md` for detailed instructions.
 3. Create channel configuration
 4. Select SNS topics created by this stack
 
-**Option B: Webhook (Included in code)**
+**Option B: Webhook (Reference Implementation)**
 1. Create Teams incoming webhook in your channel
 2. Add to `lib/config/environment-config.ts`:
 
@@ -120,7 +119,7 @@ dev: {
 },
 ```
 
-See `TEAMS_INTEGRATION.md` for detailed instructions.
+See [Teams Integration](TEAMS_INTEGRATION.md) for detailed instructions.
 
 ## Complete Configuration Example
 
@@ -153,25 +152,19 @@ export const ENVIRONMENT_CONFIGS: Record<string, EnvironmentConfig> = {
 };
 ```
 
-All notification settings are now configured in `environment-config.ts` for consistency and version control.
-
 ## Testing Notifications
 
 After deployment, test each channel:
 
 ```bash
-# Get the SNS topic ARN from CloudFormation outputs
-aws cloudformation describe-stacks \
-  --stack-name monitoring-dev \
-  --query 'Stacks[0].Outputs[?OutputKey==`CriticalTopicArn`].OutputValue' \
-  --output text \
-  --profile dev
+# First, get the SNS topic ARN
+aws sns list-topics --profile YOUR_PROFILE --query 'Topics[?contains(TopicArn, `dev-monitoring-critical`)].TopicArn' --output text
 
-# Publish a test message
+# Then publish a test message (replace TOPIC_ARN with the ARN from above)
 aws sns publish \
-  --topic-arn arn:aws:sns:us-east-1:ACCOUNT:monitoring-critical-alerts-dev \
+  --topic-arn TOPIC_ARN \
   --message '{"AlarmName":"Test Alarm","NewStateValue":"ALARM","NewStateReason":"Testing notifications","Region":"us-east-1","StateChangeTime":"2024-01-29T10:30:00.000Z","AlarmDescription":"This is a test"}' \
-  --profile dev
+  --profile YOUR_PROFILE
 ```
 
 You should receive notifications on all configured channels.
@@ -269,13 +262,3 @@ After Hours → SMS + Slack
 - Check Lambda CloudWatch Logs
 - Test webhook with curl
 - Verify Teams connector is enabled
-
-## Next Steps
-
-1. Configure your preferred notification channels
-2. Deploy to dev environment
-3. Test all notification channels
-4. Adjust alarm thresholds if needed
-5. Deploy to staging and prod
-6. Set up on-call rotation
-7. Document runbooks for common alarms

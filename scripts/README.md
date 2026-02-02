@@ -2,11 +2,19 @@
 
 Automation scripts for setting up and managing the CDK monitoring infrastructure.
 
+## Table of Contents
+
+- [Available Scripts](#available-scripts)
+  - [setup-oidc.sh](#setup-oidcsh)
+- [Contributing](#contributing)
+
 ## Available Scripts
 
 ### `setup-oidc.sh`
 
 Automated setup script for GitHub Actions OIDC authentication.
+
+> **Note:** GitHub Actions deployment is optional. This project works great with local deployment using `cdk deploy`. Only use this script if you want automated deployments.
 
 **Purpose:** Configures secure authentication for GitHub Actions to deploy CDK stacks without storing long-lived credentials.
 
@@ -18,24 +26,23 @@ Automated setup script for GitHub Actions OIDC authentication.
 - Verifies CDK bootstrap
 - Outputs the Role ARN for GitHub Secrets
 
-**Usage:**
-```bash
-./scripts/setup-oidc.sh
-```
-
 **Prerequisites:**
 - AWS CLI configured with a profile
 - Admin access to AWS account (or IAM permissions)
 - Permissions to create OIDC providers and IAM roles
 
+**Usage:**
+```bash
+./scripts/setup-oidc.sh
+```
+
 **Output:**
 - Role ARN (save this for GitHub Secrets)
-- Saved to `.github-role-arn.txt` for reference
 
 **Documentation:**
-- [GitHub Actions Setup](../docs/GITHUB_ACTIONS_SETUP.md) - Complete guide with quick start and detailed setup
+See [GitHub Actions Setup](../docs/GITHUB_ACTIONS_SETUP.md) for complete setup guide.
 
-**Example:**
+**Example Output:**
 ```bash
 $ ./scripts/setup-oidc.sh
 ========================================
@@ -45,7 +52,7 @@ GitHub Actions OIDC Setup for AWS
 Step 1: Getting AWS Account ID...
 Enter your AWS profile name (e.g., dev, default): dev
 ✓ Account ID: 123456789012
-✓ GitHub Repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME
+✓ GitHub Repo: username/repo-name
 
 Step 2: Creating OIDC Provider...
 ✓ OIDC Provider created
@@ -76,18 +83,7 @@ Next Steps:
 
 Role ARN for workflow:
 arn:aws:iam::123456789012:role/GitHubActionsCDKDeploy
-
-✓ Role ARN saved to .github-role-arn.txt
 ```
-
-## Future Scripts
-
-Additional scripts may be added here for:
-- Deployment automation
-- Environment setup
-- Resource cleanup
-- Testing and validation
-- Monitoring setup
 
 ## Contributing
 

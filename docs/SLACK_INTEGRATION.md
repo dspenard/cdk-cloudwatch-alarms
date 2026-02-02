@@ -7,11 +7,15 @@ This guide explains how to integrate CloudWatch alarms with Slack channels.
 ## Table of Contents
 
 - [Option 1: AWS Chatbot (Recommended)](#option-1-aws-chatbot-recommended)
-- [Option 2: Webhook with Lambda (Included in Code)](#option-2-webhook-with-lambda-included-in-code)
-- [Testing Your Integration](#testing-your-integration)
-- [Message Format](#message-format)
+- [Option 2: Lambda Function (Reference Implementation)](#option-2-lambda-function-reference-implementation)
+- [Option 3: Slack App with AWS Secrets Manager](#option-3-slack-app-with-aws-secrets-manager)
+- [Message Format Examples](#message-format-examples)
+- [Slack Channel Recommendations](#slack-channel-recommendations)
+- [Testing](#testing)
+- [Advanced Features](#advanced-features)
+- [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
-- [Advanced Configuration](#advanced-configuration)
+- [Combining Slack and Teams](#combining-slack-and-teams)
 
 ## Option 1: AWS Chatbot (Recommended)
 
@@ -53,7 +57,7 @@ AWS Chatbot provides native Slack integration for CloudWatch alarms.
 - Requires AWS Chatbot setup per account
 - Need Slack workspace admin permissions
 
-## Option 2: Lambda Function with Slack Webhook
+## Option 2: Lambda Function (Reference Implementation)
 
 For more control over message formatting, use a Lambda function.
 
@@ -375,12 +379,17 @@ The Lambda example above creates rich Slack messages with:
 Test your integration:
 
 ```bash
-# Publish a test message to SNS
+# First, get your SNS topic ARN
+aws sns list-topics --profile YOUR_PROFILE --query 'Topics[?contains(TopicArn, `dev-monitoring-critical`)].TopicArn' --output text
+
+# Then publish a test message
 aws sns publish \
-  --topic-arn arn:aws:sns:us-east-1:ACCOUNT:monitoring-critical-alerts-dev \
+  --topic-arn arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-critical-alerts-dev \
   --message '{"AlarmName":"Test Alarm","NewStateValue":"ALARM","NewStateReason":"Testing Slack integration","Region":"us-east-1","StateChangeTime":"2024-01-29T10:30:00.000Z"}' \
-  --profile dev
+  --profile YOUR_PROFILE
 ```
+
+Replace `ACCOUNT_ID` and `YOUR_PROFILE` with your actual values.
 
 ## Advanced Features
 
@@ -475,7 +484,7 @@ const emojiMap = {
 You can send notifications to both Slack and Teams:
 
 ```typescript
-// In monitoring-stack.ts
+// In lib/stacks/monitoring-stack.ts
 if (envConfig.slackWebhookUrl) {
   new SlackForwarder(this, 'SlackForwarder', {
     environment,

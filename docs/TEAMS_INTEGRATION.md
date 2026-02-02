@@ -7,9 +7,10 @@ This guide explains how to integrate CloudWatch alarms with Microsoft Teams chan
 ## Table of Contents
 
 - [Option 1: AWS Chatbot (Recommended)](#option-1-aws-chatbot-recommended)
-- [Option 2: Webhook with Lambda (Included in Code)](#option-2-webhook-with-lambda-included-in-code)
-- [Testing Your Integration](#testing-your-integration)
-- [Message Format](#message-format)
+- [Option 2: Lambda Function (Reference Implementation)](#option-2-lambda-function-reference-implementation)
+- [Message Format Examples](#message-format-examples)
+- [Testing](#testing)
+- [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 
 ## Option 1: AWS Chatbot (Recommended)
@@ -46,7 +47,7 @@ AWS Chatbot is the easiest way to send CloudWatch alarms to Teams.
 - Requires AWS Chatbot setup per account
 - Limited customization
 
-## Option 2: Lambda Function
+## Option 2: Lambda Function (Reference Implementation)
 
 For more control, use a Lambda function to forward SNS messages to Teams.
 
@@ -87,6 +88,13 @@ export class TeamsForwarder extends Construct {
         exports.handler = async (event) => {
           const message = JSON.parse(event.Records[0].Sns.Message);
           
+          // Add console link if alarm ARN is available
+          let consoleUrl = '';
+          if (message.AlarmArn) {
+            const region = message.Region || 'us-east-1';
+            consoleUrl = \`https://console.aws.amazon.com/cloudwatch/home?region=\${region}#alarmsV2:alarm/\${encodeURIComponent(message.AlarmName)}\`;
+          }
+          
           const card = {
             "@type": "MessageCard",
             "@context": "https://schema.org/extensions",
@@ -96,12 +104,32 @@ export class TeamsForwarder extends Construct {
             "sections": [{
               "activityTitle": "CloudWatch Alarm",
               "facts": [
-                { "name": "Status", "value": message.NewStateValue },
-                { "name": "Reason", "value": message.NewStateReason },
-                { "name": "Region", "value": message.Region },
-                { "name": "Time", "value": message.StateChangeTime }
+                {
+                  "name": "Status",
+                  "value": message.NewStateValue
+                },
+                {
+                  "name": "Reason",
+                  "value": message.NewStateReason
+                },
+                {
+                  "name": "Region",
+                  "value": message.Region || 'us-east-1'
+                },
+                {
+                  "name": "Time",
+                  "value": message.StateChangeTime
+                }
               ]
-            }]
+            }],
+            "potentialAction": consoleUrl ? [{
+              "@type": "OpenUri",
+              "name": "View in Console",
+              "targets": [{
+                "os": "default",
+                "uri": consoleUrl
+              }]
+            }] : []
           };
           
           return new Promise((resolve, reject) => {
@@ -116,7 +144,15 @@ export class TeamsForwarder extends Construct {
             };
             
             const req = https.request(options, (res) => {
-              resolve({ statusCode: res.statusCode });
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => {
+                if (res.statusCode === 200) {
+                  resolve({ statusCode: 200, body: 'Message sent to Teams' });
+                } else {
+                  reject(new Error(\`Teams API error: \${res.statusCode} - \${data}\`));
+                }
+              });
             });
             
             req.on('error', reject);
@@ -125,9 +161,8 @@ export class TeamsForwarder extends Construct {
           });
         };
       `),
-      environment: {
-        TEAMS_WEBHOOK_URL: props.teamsWebhookUrl,
-      },
+      timeout: cdk.Duration.seconds(10),
+      description: \`Forwards CloudWatch alarms to Teams for \${props.environment}\`,
     });
 
     props.alarmTopic.addSubscription(
@@ -196,13 +231,17 @@ You can customize the Lambda to include:
 Test your integration:
 
 ```bash
-# Publish a test message to SNS
+# First, get your SNS topic ARN
+aws sns list-topics --profile YOUR_PROFILE --query 'Topics[?contains(TopicArn, `dev-monitoring-critical`)].TopicArn' --output text
+
+# Then publish a test message
 aws sns publish \
-  --topic-arn arn:aws:sns:us-east-1:ACCOUNT:monitoring-critical-alerts-dev \
-  --message "Test alarm notification" \
-  --subject "Test CloudWatch Alarm" \
-  --profile dev
+  --topic-arn arn:aws:sns:us-east-1:ACCOUNT_ID:monitoring-critical-alerts-dev \
+  --message '{"AlarmName":"Test Alarm","NewStateValue":"ALARM","NewStateReason":"Testing Teams integration","Region":"us-east-1","StateChangeTime":"2024-01-29T10:30:00.000Z"}' \
+  --profile YOUR_PROFILE
 ```
+
+Replace `ACCOUNT_ID` and `YOUR_PROFILE` with your actual values.
 
 ## Best Practices
 

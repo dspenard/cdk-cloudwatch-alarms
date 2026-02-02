@@ -1,14 +1,13 @@
 # GitHub Actions Setup Guide
 
-> **⚠️ Prerequisites:** 
+This guide walks you through setting up secure OIDC authentication for GitHub Actions to deploy your CDK monitoring stack.
+
+> **⚠️ Before You Begin:** 
 > - This guide assumes you've **forked this repository** to your own GitHub account
 > - GitHub Actions won't work on the original template repository
 > - The OIDC trust policy must match YOUR repository name
-> - If you haven't forked yet, do that first: Click "Fork" on GitHub
 
 > **Note:** GitHub Actions deployment is **optional**. This project works great with local deployment using `cdk deploy`. Only set up GitHub Actions if you want automated deployments on push to main.
-
-This guide walks you through setting up secure OIDC authentication for GitHub Actions to deploy your CDK monitoring stack.
 
 ## Table of Contents
 
@@ -21,9 +20,6 @@ This guide walks you through setting up secure OIDC authentication for GitHub Ac
 - [Troubleshooting](#troubleshooting)
 - [Multiple Environments](#multiple-environments)
 - [Security Best Practices](#security-best-practices)
-- [Verification Checklist](#verification-checklist)
-- [Next Steps](#next-steps)
-- [Quick Reference](#quick-reference)
 - [Alternative Authentication Methods](#alternative-authentication-methods)
 - [Destroying Infrastructure via GitHub Actions](#destroying-infrastructure-via-github-actions)
 
@@ -37,18 +33,12 @@ This guide walks you through setting up secure OIDC authentication for GitHub Ac
 ## Prerequisites
 
 - AWS CLI configured with a profile
-- Admin access to your AWS account (or permissions to create IAM roles/OIDC providers)
+- Admin access to your AWS account (easiest for setup, but see [Security Best Practices](#security-best-practices) for least-privilege permissions)
 - Access to your GitHub repository settings
 
 ## Quick Start (15 minutes)
 
 Get GitHub Actions working in 15 minutes with secure OIDC authentication.
-
-### What You Need
-
-- AWS CLI configured with a profile
-- Admin access to AWS account (or IAM permissions)
-- Access to GitHub repository settings
 
 ### Step 1: Run Setup Script (5 minutes)
 
@@ -76,16 +66,7 @@ arn:aws:iam::123456789012:role/GitHubActionsCDKDeploy
    - **Value:** Your Role ARN from Step 1
 4. Click **"Add secret"**
 
-### Step 3: Commit Updated Workflow (2 minutes)
-
-```bash
-# The workflow file has already been updated for OIDC
-git add .github/workflows/deploy.yml .gitignore
-git commit -m "Configure OIDC authentication for GitHub Actions"
-git push origin main
-```
-
-### Step 4: Test Deployment (5 minutes)
+### Step 3: Test Deployment (5 minutes)
 
 **Option A: Manual Trigger (Recommended for first test)**
 
@@ -107,7 +88,7 @@ git commit -m "Test GitHub Actions OIDC deployment"
 git push origin main
 ```
 
-### Step 5: Verify Success (2 minutes)
+### Step 4: Verify Success (2 minutes)
 
 **In GitHub:**
 - ✅ Workflow shows green checkmark
@@ -138,10 +119,6 @@ aws cloudwatch describe-alarms \
 ## Manual Setup Steps
 
 If you prefer to run commands manually instead of using the automated script, follow these steps.
-
----
-
-## Manual Setup Steps
 
 ### Step 1: Get Your AWS Account ID
 
@@ -270,9 +247,8 @@ Example: `arn:aws:iam::123456789012:role/GitHubActionsCDKDeploy`
 ### Step 1: Add GitHub Secret
 
 1. Go to your GitHub repository: **Settings** → **Secrets and variables** → **Actions**
-2. Click **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add this secret:
+2. Click **New repository secret**
+3. Add this secret:
 
 | Secret Name | Value |
 |------------|-------|
@@ -416,23 +392,38 @@ git push origin main
 
 ## Multiple Environments
 
-To set up staging and prod:
+To deploy to staging and prod environments, you need to set up OIDC authentication in each AWS account.
 
-### For Each Environment:
+### Setup Steps:
 
-1. **Create separate IAM role** (or use the same role with different permissions)
-2. **Add GitHub secret** with the role ARN:
-   - `AWS_ROLE_ARN_STAGING`
-   - `AWS_ROLE_ARN_PROD`
-3. **Bootstrap CDK** in each account:
+1. **Run the setup script in each account:**
+   ```bash
+   # In staging account
+   ./scripts/setup-oidc.sh
+   # Enter staging AWS profile when prompted
+   
+   # In prod account
+   ./scripts/setup-oidc.sh
+   # Enter prod AWS profile when prompted
+   ```
+
+2. **Add GitHub secrets for each environment:**
+   - `AWS_ROLE_ARN_DEV` (already configured)
+   - `AWS_ROLE_ARN_STAGING` (add the role ARN from staging account)
+   - `AWS_ROLE_ARN_PROD` (add the role ARN from prod account)
+
+3. **Bootstrap CDK in each account:**
    ```bash
    cdk bootstrap aws://STAGING_ACCOUNT_ID/us-east-1 --profile staging
    cdk bootstrap aws://PROD_ACCOUNT_ID/us-east-1 --profile prod
    ```
 
-### Trust Policy for Multiple Accounts
+### How It Works:
 
-If using separate AWS accounts, create the OIDC provider and role in each account with the same trust policy.
+- Each AWS account has its own OIDC provider and IAM role
+- All roles trust the same GitHub repository
+- The workflow dynamically selects the correct role based on the environment being deployed
+- This maintains security isolation between environments
 
 ---
 
@@ -472,187 +463,23 @@ Review role permissions quarterly and remove unused permissions.
 
 ---
 
-## Verification Checklist
-
-Before considering setup complete, verify:
-
-- [ ] OIDC provider exists in AWS
-- [ ] IAM role created with correct trust policy
-- [ ] Permissions policy attached to role
-- [ ] CDK bootstrapped in target account
-- [ ] GitHub secret added with role ARN
-- [ ] Workflow file updated for OIDC
-- [ ] Test deployment successful
-- [ ] CloudFormation stack deployed
-- [ ] CloudWatch alarms created
-
----
-
-## Next Steps
-
-After OIDC is working:
-
-1. ✅ Set up staging and prod environments
-2. ✅ Configure branch protection rules
-3. ✅ Add deployment notifications (Slack/Teams)
-4. ✅ Implement least privilege IAM policies
-5. ✅ Document the process for your team
-
----
-
-## Quick Reference
-
-### Role ARN Format
-```
-arn:aws:iam::ACCOUNT_ID:role/GitHubActionsCDKDeploy
-```
-
-### GitHub Secret Names
-- Dev: `AWS_ROLE_ARN_DEV`
-- Staging: `AWS_ROLE_ARN_STAGING`
-- Prod: `AWS_ROLE_ARN_PROD`
-
-### Useful Commands
-```bash
-# Get account ID
-aws sts get-caller-identity --profile YOUR_PROFILE --query Account --output text
-
-# Get role ARN
-aws iam get-role --role-name GitHubActionsCDKDeploy --profile YOUR_PROFILE --query 'Role.Arn' --output text
-
-# Test role assumption (from GitHub Actions)
-aws sts assume-role-with-web-identity \
-  --role-arn arn:aws:iam::ACCOUNT_ID:role/GitHubActionsCDKDeploy \
-  --role-session-name test \
-  --web-identity-token TOKEN
-```
-
----
-
-**You're all set!** Your GitHub Actions workflow now uses secure OIDC authentication with no long-lived credentials. 🔒
-
 ## Alternative Authentication Methods
 
-While OIDC is the recommended approach, there are two other methods for GitHub Actions authentication:
+While OIDC is the recommended approach for its security benefits, there are two other methods available:
 
-### Option B: IAM User with Access Keys
+**IAM User with Access Keys:**
+- Simpler setup but requires storing long-lived credentials in GitHub
+- Must rotate keys every 90 days
+- Security risk if credentials leak
+- Good for quick testing only
 
-**When to use:** Quick testing or when OIDC setup is not feasible.
+**Self-Hosted Runner with Instance Profile:**
+- No credentials in GitHub (uses EC2 instance profile)
+- Requires managing EC2 infrastructure and runner software
+- Additional AWS costs
+- Best for organizations with existing EC2 infrastructure
 
-**Pros:**
-- ✅ Simple to set up
-- ✅ Works immediately
-- ✅ Good for testing
-
-**Cons:**
-- ⚠️ Long-lived credentials stored in GitHub
-- ⚠️ Must rotate keys every 90 days
-- ⚠️ Security risk if credentials leak
-
-**Quick Setup:**
-
-1. **Create IAM User:**
-   ```bash
-   aws iam create-user --user-name github-actions-cdk-deploy --profile YOUR_PROFILE
-   aws iam attach-user-policy \
-     --user-name github-actions-cdk-deploy \
-     --policy-arn arn:aws:iam::aws:policy/AdministratorAccess \
-     --profile YOUR_PROFILE
-   aws iam create-access-key --user-name github-actions-cdk-deploy --profile YOUR_PROFILE
-   ```
-
-2. **Add to GitHub Secrets:**
-   - Go to: Settings → Secrets and variables → Actions
-   - Add `AWS_ACCESS_KEY_ID_DEV` = (your access key)
-   - Add `AWS_SECRET_ACCESS_KEY_DEV` = (your secret key)
-
-3. **Update Workflow:**
-   ```yaml
-   - name: Configure AWS credentials
-     uses: aws-actions/configure-aws-credentials@v4
-     with:
-       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-       aws-region: us-east-1
-   ```
-
-**Security Note:** Remember to rotate these keys regularly and use least privilege policies in production.
-
----
-
-### Option C: Self-Hosted Runner with Instance Profile
-
-**When to use:** You have existing EC2 infrastructure and want maximum control.
-
-**Pros:**
-- ✅ No credentials in GitHub at all
-- ✅ Uses EC2 instance profile (auto-rotated)
-- ✅ Full control over runner environment
-- ✅ Can use private VPC resources
-
-**Cons:**
-- ⚠️ Must manage EC2 infrastructure
-- ⚠️ Must maintain runner software
-- ⚠️ Additional AWS costs
-- ⚠️ More complex setup
-
-**Quick Setup:**
-
-1. **Launch EC2 Instance:**
-   - Use Amazon Linux 2 or Ubuntu
-   - Attach IAM instance profile with CDK deployment permissions
-   - Ensure security group allows outbound HTTPS
-
-2. **Create IAM Role for Instance:**
-   ```json
-   {
-     "Version": "2012-10-17",
-     "Statement": [{
-       "Effect": "Allow",
-       "Action": [
-         "cloudformation:*",
-         "cloudwatch:*",
-         "sns:*",
-         "lambda:*",
-         "iam:*",
-         "s3:*",
-         "logs:*",
-         "ssm:GetParameter"
-       ],
-       "Resource": "*"
-     }]
-   }
-   ```
-
-3. **Install GitHub Actions Runner:**
-   - Go to: Your repo → Settings → Actions → Runners
-   - Click "New self-hosted runner"
-   - Follow the installation instructions on your EC2 instance
-
-4. **Update Workflow:**
-   ```yaml
-   jobs:
-     deploy:
-       runs-on: self-hosted  # Use your runner instead of ubuntu-latest
-   ```
-
-**No GitHub Secrets needed** - the instance profile provides credentials automatically.
-
----
-
-## Comparison Table
-
-| Feature | OIDC (Recommended) | IAM User | Self-Hosted Runner |
-|---------|-------------------|----------|-------------------|
-| **Security** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ Good | ⭐⭐⭐⭐ Very Good |
-| **Setup Complexity** | Medium | Low | High |
-| **Credentials in GitHub** | None (Role ARN only) | Yes (Access Keys) | None |
-| **Credential Rotation** | Automatic | Manual (90 days) | Automatic |
-| **AWS Costs** | None | None | EC2 instance |
-| **Maintenance** | Low | Low | High |
-| **Best For** | Production | Testing | Existing infrastructure |
-
-**Recommendation:** Use OIDC (this guide) for production deployments. The other methods are documented here for completeness and specific use cases.
+**Recommendation:** Use OIDC (this guide) for production deployments. OIDC provides automatic credential rotation, no long-lived secrets, and follows AWS security best practices.
 
 ---
 

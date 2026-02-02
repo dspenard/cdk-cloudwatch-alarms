@@ -1,86 +1,79 @@
 # Enabling Additional Services
 
-This guide shows how to enable monitoring for additional AWS services beyond S3.
+This guide shows how to enable monitoring for additional AWS services.
 
 ## Table of Contents
 
 - [Current State](#current-state)
-- [How to Enable a Service](#how-to-enable-a-service)
-- [ECS Services](#ecs-services)
-- [RDS Databases](#rds-databases)
-- [Load Balancers (ELB)](#load-balancers-elb)
-- [EFS File Systems](#efs-file-systems)
-- [FSx File Systems](#fsx-file-systems)
-- [SES Email Service](#ses-email-service)
-- [Step Functions](#step-functions)
-- [WAF Web ACLs](#waf-web-acls)
-- [Getting Resource Information](#getting-resource-information)
-- [Next Steps](#next-steps)
+- [Enabling Services](#enabling-services)
+  - [ECS Services](#ecs-services)
+  - [RDS Databases](#rds-databases)
+  - [Load Balancers](#load-balancers-elb)
+  - [EFS File Systems](#efs-file-systems)
+  - [FSx File Systems](#fsx-file-systems)
+  - [SES Email Service](#ses-email-service)
+  - [Step Functions](#step-functions)
+  - [WAF Web ACLs](#waf-web-acls)
+- [Verification](#verification)
+- [Disabling a Service](#disabling-a-service)
+- [Best Practices](#best-practices)
+- [Cost Impact](#cost-impact)
+- [Managing Multiple Resources](#managing-multiple-resources)
+- [Need Help?](#need-help)
 
 ## Current State
 
-✅ **Active**: S3 bucket monitoring  
-💤 **Commented Out**: ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF
+✅ **Active**: S3 bucket monitoring (tested)  
+💤 **Commented Out**: ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF (not tested - reference implementations)
 
-## How to Enable a Service
+## Enabling Services
 
-Each service requires **2 steps**:
+Each service requires these steps:
 
-### Step 1: Uncomment the Import
+1. **Uncomment the import** at the top of `lib/stacks/monitoring-stack.ts`
+2. **Uncomment the code section** for that service
+3. **Update resource names** with your actual resource identifiers
+4. **Deploy** the changes
 
-At the top of `lib/stacks/monitoring-stack.ts`, uncomment the import:
+You can enable multiple services at once by uncommenting multiple imports and code sections before deploying.
+
+Example:
 
 ```typescript
-// Before:
-// import { EcsAlarms } from '../constructs/alarms/ecs-alarms';
-
-// After:
+// 1. Uncomment the import
 import { EcsAlarms } from '../constructs/alarms/ecs-alarms';
-```
 
-### Step 2: Uncomment the Code Section
-
-Find the service section and uncomment the code:
-
-```typescript
-// Before:
-/*
+// 2. Uncomment and update the code section
 const ecsServices = [
-  { cluster: 'api-cluster', service: 'user-service' },
+  { cluster: 'my-cluster', service: 'my-service' },  // ← Your actual names
 ];
-...
-*/
 
-// After:
-const ecsServices = [
-  { cluster: 'api-cluster', service: 'user-service' },
-];
-// ... rest of code
+ecsServices.forEach(({ cluster, service }) => {
+  new EcsAlarms(this, `${service}Alarms`, {
+    environment,
+    clusterName: cluster,
+    serviceName: service,
+    alarmTopic: alertTopics.criticalAlarmTopic,
+  });
+});
 ```
-
-### Step 3: Update Resource Names
-
-Replace the example names with your actual resource names.
-
-### Step 4: Deploy
 
 ```bash
+# 3. Deploy
 npm run build
 cdk deploy --context environment=dev --profile dev
 ```
 
-## Service-by-Service Guide
-
-### 🐳 Enable ECS Monitoring
+### 🐳 ECS Services
 
 **What you need**: ECS cluster names and service names
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { EcsAlarms } from '../constructs/alarms/ecs-alarms';
 ```
 
-**Step 2**: Uncomment and update the ECS section (around line 95)
+**Uncomment and update the ECS section** (around line 95):
 ```typescript
 const ecsServices = [
   { cluster: 'my-cluster', service: 'my-service' },  // ← Your actual names
@@ -101,16 +94,16 @@ ecsServices.forEach(({ cluster, service }) => {
 
 ---
 
-### 🗄️ Enable RDS Monitoring
+### 🗄️ RDS Databases
 
 **What you need**: RDS instance identifiers
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { RdsAlarms } from '../constructs/alarms/rds-alarms';
 ```
 
-**Step 2**: Uncomment and update the RDS section (around line 115)
+**Uncomment and update the RDS section** (around line 115):
 ```typescript
 const rdsInstances = [
   'my-database',        // ← Your actual DB instance identifier
@@ -130,29 +123,29 @@ rdsInstances.forEach((dbId) => {
 
 ---
 
-### ⚖️ Enable Load Balancer Monitoring
+### ⚖️ Load Balancers (ELB)
 
 **What you need**: Load balancer full names and target group names
 
 **How to find them**:
 ```bash
 # List load balancers
-aws elbv2 describe-load-balancers --profile dev
+aws elbv2 describe-load-balancers --profile YOUR_PROFILE
 
 # Get full name from LoadBalancerArn:
 # arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/my-alb/1234567890abcdef
 # Full name: app/my-alb/1234567890abcdef
 
 # List target groups
-aws elbv2 describe-target-groups --profile dev
+aws elbv2 describe-target-groups --profile YOUR_PROFILE
 ```
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { ElbAlarms } from '../constructs/alarms/elb-alarms';
 ```
 
-**Step 2**: Uncomment and update the ELB section (around line 135)
+**Uncomment and update the ELB section** (around line 135):
 ```typescript
 const loadBalancers = [
   {
@@ -176,22 +169,22 @@ loadBalancers.forEach(({ name, fullName, targetGroup }) => {
 
 ---
 
-### 📁 Enable EFS Monitoring
+### 📁 EFS File Systems
 
 **What you need**: EFS file system IDs
 
 **How to find them**:
 ```bash
-aws efs describe-file-systems --profile dev
+aws efs describe-file-systems --profile YOUR_PROFILE
 # Look for FileSystemId: fs-12345678
 ```
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { EfsAlarms } from '../constructs/alarms/efs-alarms';
 ```
 
-**Step 2**: Uncomment and update the EFS section (around line 165)
+**Uncomment and update the EFS section** (around line 165):
 ```typescript
 const efsFileSystems = [
   'fs-12345678',  // ← Your actual file system ID
@@ -211,22 +204,22 @@ efsFileSystems.forEach((fsId) => {
 
 ---
 
-### 💾 Enable FSx Monitoring
+### 💾 FSx File Systems
 
 **What you need**: FSx file system IDs and types
 
 **How to find them**:
 ```bash
-aws fsx describe-file-systems --profile dev
+aws fsx describe-file-systems --profile YOUR_PROFILE
 # Look for FileSystemId and FileSystemType
 ```
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { FsxAlarms } from '../constructs/alarms/fsx-alarms';
 ```
 
-**Step 2**: Uncomment and update the FSx section (around line 185)
+**Uncomment and update the FSx section** (around line 185):
 ```typescript
 const fsxFileSystems = [
   { id: 'fs-0123456789abcdef0', type: 'Windows' as const },  // ← Your actual values
@@ -249,16 +242,16 @@ fsxFileSystems.forEach(({ id, type }) => {
 
 ---
 
-### 📧 Enable SES Monitoring
+### 📧 SES Email Service
 
 **What you need**: Nothing! SES monitoring is account-level
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { SesAlarms } from '../constructs/alarms/ses-alarms';
 ```
 
-**Step 2**: Uncomment the SES section (around line 205)
+**Uncomment the SES section** (around line 205):
 ```typescript
 new SesAlarms(this, 'SesAlarms', {
   environment,
@@ -270,22 +263,22 @@ new SesAlarms(this, 'SesAlarms', {
 
 ---
 
-### 🔄 Enable Step Functions Monitoring
+### 🔄 Step Functions
 
 **What you need**: State machine names and ARNs
 
 **How to find them**:
 ```bash
-aws stepfunctions list-state-machines --profile dev
+aws stepfunctions list-state-machines --profile YOUR_PROFILE
 # Look for name and stateMachineArn
 ```
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { StepFunctionsAlarms } from '../constructs/alarms/stepfunctions-alarms';
 ```
 
-**Step 2**: Uncomment and update the Step Functions section (around line 215)
+**Uncomment and update the Step Functions section** (around line 215):
 ```typescript
 const stateMachines = [
   {
@@ -308,22 +301,22 @@ stateMachines.forEach(({ name, arn }) => {
 
 ---
 
-### 🛡️ Enable WAF Monitoring
+### 🛡️ WAF Web ACLs
 
 **What you need**: Web ACL names and IDs
 
 **How to find them**:
 ```bash
-aws wafv2 list-web-acls --scope REGIONAL --region us-east-1 --profile dev
+aws wafv2 list-web-acls --scope REGIONAL --region us-east-1 --profile YOUR_PROFILE
 # Look for Name and Id
 ```
 
-**Step 1**: Uncomment import
+**Uncomment import**:
 ```typescript
 import { WafAlarms } from '../constructs/alarms/waf-alarms';
 ```
 
-**Step 2**: Uncomment and update the WAF section (around line 240)
+**Uncomment and update the WAF section** (around line 240):
 ```typescript
 const webAcls = [
   { 
@@ -347,62 +340,25 @@ webAcls.forEach(({ name, id }) => {
 
 ---
 
-## Example: Enable Multiple Services
-
-Let's say you want to enable S3, ECS, and RDS:
-
-### 1. Uncomment Imports
-```typescript
-import { S3Alarms } from '../constructs/alarms/s3-alarms';
-import { EcsAlarms } from '../constructs/alarms/ecs-alarms';
-import { RdsAlarms } from '../constructs/alarms/rds-alarms';
-```
-
-### 2. Keep S3 Section Active (already uncommented)
-```typescript
-const s3Buckets = ['my-bucket-1', 'my-bucket-2'];
-// ... S3 code
-```
-
-### 3. Uncomment and Update ECS Section
-```typescript
-const ecsServices = [
-  { cluster: 'my-cluster', service: 'my-service' },
-];
-// ... ECS code
-```
-
-### 4. Uncomment and Update RDS Section
-```typescript
-const rdsInstances = ['my-database'];
-// ... RDS code
-```
-
-### 5. Deploy
-```bash
-npm run build
-cdk deploy --context environment=dev --profile dev
-```
-
 ## Verification
 
-After enabling a service and deploying:
+After enabling a service and deploying, verify the alarms were created. All resources are environment-specific (e.g., `dev`, `staging`, `prod`).
 
 1. **Check CloudFormation**:
    - Go to CloudFormation console
-   - Look for `monitoring-dev` stack
+   - Look for `monitoring-{env}` stack (e.g., `monitoring-dev`, `monitoring-prod`)
    - Check "Resources" tab for new alarms
 
 2. **Check CloudWatch**:
    - Go to CloudWatch console
    - Click "Alarms"
-   - Filter by environment (e.g., "dev-")
+   - Filter by environment prefix (e.g., "dev-", "prod-")
    - Verify new alarms exist
 
 3. **Check Alarm Names**:
-   - S3: `dev-s3-BUCKET-NAME-bucket-size`
-   - ECS: `dev-ecs-SERVICE-NAME-cpu-utilization`
-   - RDS: `dev-rds-DB-ID-cpu-utilization`
+   - S3: `{env}-s3-BUCKET-NAME-bucket-size`
+   - ECS: `{env}-ecs-SERVICE-NAME-cpu-utilization`
+   - RDS: `{env}-rds-DB-ID-cpu-utilization`
    - etc.
 
 ## Disabling a Service
@@ -415,7 +371,7 @@ To disable a service:
 
 ```bash
 npm run build
-cdk deploy --context environment=dev --profile dev
+cdk deploy --context environment={env} --profile {profile}
 ```
 
 CDK will remove the alarms for that service.
@@ -455,37 +411,100 @@ Adding services increases alarm count:
 | ELB | 4 | $3.00/month |
 | EFS | 2 | $1.00/month |
 | FSx | 2 | $1.00/month |
-| SES | 2 | $0.20/month (account-level) |
+| SES | 2 | Free (account-level, only 2 alarms) |
 | Step Functions | 2 | $1.00/month |
-| WAF | 1 | $0.50/month |
+| WAF | 1 | Free (10 resources = 10 alarms) |
 
 First 10 alarms are free, then $0.10 per alarm per month.
 
-## Quick Reference
+## Managing Multiple Resources
+
+When monitoring many resources, use these patterns for better organization.
+
+### Pattern 1: Arrays and Loops
+
+Instead of creating alarms one by one, define resources in arrays:
 
 ```typescript
-// Import pattern
-import { ServiceAlarms } from '../constructs/alarms/service-alarms';
+// Monitor multiple ECS services
+const ecsServices = [
+  { cluster: 'api-cluster', service: 'user-service' },
+  { cluster: 'api-cluster', service: 'auth-service' },
+  { cluster: 'api-cluster', service: 'payment-service' },
+  { cluster: 'worker-cluster', service: 'email-worker' },
+];
 
-// Usage pattern
-const resources = ['resource-1', 'resource-2'];
-
-resources.forEach((resourceId) => {
-  new ServiceAlarms(this, `${resourceId}Alarms`, {
+ecsServices.forEach(({ cluster, service }) => {
+  new EcsAlarms(this, `${service}Alarms`, {
     environment,
-    // service-specific properties
+    clusterName: cluster,
+    serviceName: service,
     alarmTopic: alertTopics.criticalAlarmTopic,
   });
 });
 ```
 
+### Pattern 2: External Configuration File
+
+For many resources, load from a JSON file:
+
+```typescript
+// lib/config/resources.json
+{
+  "ecsServices": [
+    { "cluster": "api-cluster", "service": "user-service" },
+    { "cluster": "api-cluster", "service": "auth-service" }
+  ],
+  "rdsInstances": ["users-db", "products-db"],
+  "s3Buckets": ["user-uploads", "backups"]
+}
+
+// In lib/stacks/monitoring-stack.ts
+import * as resources from '../config/resources.json';
+
+resources.ecsServices.forEach(({ cluster, service }) => {
+  new EcsAlarms(this, `${service}Alarms`, {
+    environment,
+    clusterName: cluster,
+    serviceName: service,
+    alarmTopic: alertTopics.criticalAlarmTopic,
+  });
+});
+```
+
+### Pattern 3: Custom Thresholds Per Resource
+
+Override default thresholds for specific resources:
+
+```typescript
+const s3Buckets = [
+  { name: 'user-uploads', sizeThreshold: 500 * 1024 * 1024 * 1024 }, // 500GB
+  { name: 'backups', sizeThreshold: 1000 * 1024 * 1024 * 1024 }, // 1TB
+  { name: 'logs', sizeThreshold: 100 * 1024 * 1024 * 1024 }, // 100GB
+];
+
+s3Buckets.forEach(({ name, sizeThreshold }) => {
+  new S3Alarms(this, `${name}BucketAlarms`, {
+    environment,
+    bucketName: name,
+    customSizeThreshold: sizeThreshold,
+    alarmTopic: alertTopics.warningAlarmTopic,
+  });
+});
+```
+
+### Tips for Scale
+
+1. **Use consistent naming** - Makes troubleshooting easier
+2. **Group by service type** - Keep all ECS alarms together, all RDS together, etc.
+3. **External configuration** - Load resource lists from JSON files
+4. **Separate stacks** - For many resources, consider multiple monitoring stacks
+5. **Tag everything** - Use consistent tags for easy filtering in CloudWatch console
+6. **Document exceptions** - Note any custom thresholds or special configurations
+
 ## Need Help?
 
-- See `EXAMPLES.md` for more code examples
-- See `ARCHITECTURE.md` for system design
-- See alarm construct files in `lib/constructs/alarms/` for details
+- See [Architecture](ARCHITECTURE.md) for system design
+- See alarm construct files in `lib/constructs/alarms/` for implementation details
 - Check AWS CLI commands above to find resource identifiers
 
----
-
-**Ready to enable more services?** Just uncomment the import and code section, update the resource names, and deploy!
