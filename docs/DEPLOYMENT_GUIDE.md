@@ -199,7 +199,7 @@ const s3Buckets = [
 ];
 ```
 
-**Important**: You must specify at least one existing S3 bucket name. Bucket must exist in us-east-1.
+**Important**: You must specify at least one existing S3 bucket name. Bucket must exist in the same region as your deployment (default: us-east-1).
 
 **To enable other services:** See [Enabling Services](ENABLING_SERVICES.md) for details.
 
@@ -377,9 +377,9 @@ cdk deploy --context environment=<ENV> --profile YOUR_PROFILE
 
 ## Tearing Down Resources
 
-### Option 1: Destroy via GitHub Actions (Recommended)
+### Option 1: Destroy via GitHub Actions
 
-If you have GitHub Actions set up, you can destroy infrastructure through the GitHub UI:
+If you have GitHub Actions set up, you can destroy infrastructure through the GitHub UI. This provides a manual trigger with safety confirmations, which is safer than fully automated destruction.
 
 1. Go to your repository's **Actions** tab
 2. Click **"Destroy Monitoring Infrastructure"** workflow
@@ -496,7 +496,7 @@ cdk bootstrap aws://ACCOUNT-ID/us-east-1 --profile YOUR_PROFILE
 ```
 
 ### "Bucket does not exist"
-**Solution**: Verify bucket name is exact (case-sensitive) and in us-east-1
+**Solution**: Verify bucket name is exact (case-sensitive) and exists in the same region as your deployment
 
 ### "No data points" in CloudWatch
 **Solution**: S3 metrics update once per day. Wait 24 hours after bucket creation.
@@ -525,6 +525,6 @@ npm run build
 - Test SNS topics directly using the command in Testing Notifications section
 
 **Alarm Issues:**
-- Verify resources exist in the correct region (us-east-1)
+- Verify resources exist in the same region as your deployment (check `lib/config/environment-config.ts`)
 - Check CloudWatch console for alarm state and evaluation history
 - Remember S3 metrics update once per day
