@@ -28,7 +28,7 @@ This guide walks you through setting up secure OIDC authentication for GitHub Ac
 ✅ **No long-lived credentials** - No access keys to manage or rotate  
 ✅ **Automatic credential rotation** - AWS handles it automatically  
 ✅ **More secure** - Credentials never leave AWS  
-✅ **AWS best practice** - Recommended by AWS security team  
+✅ **AWS and GitHub best practices**
 
 ## Prerequisites
 
@@ -516,6 +516,20 @@ A separate workflow is available for safely destroying monitoring infrastructure
 ### Workflow File
 
 The destroy workflow is located at `.github/workflows/destroy.yml` and uses the same OIDC authentication as the deploy workflow.
+
+---
+
+## Additional Resources
+
+### GitHub Documentation
+- [About security hardening with OpenID Connect](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [Configuring OpenID Connect in Amazon Web Services](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws)
+- [OpenID Connect reference](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token)
+
+### AWS Documentation
+- [Creating OpenID Connect (OIDC) identity providers](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html)
+- [IAM JSON policy elements: Condition](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition.html)
+- [Configure AWS Credentials for GitHub Actions](https://github.com/aws-actions/configure-aws-credentials)
 
 ---
 

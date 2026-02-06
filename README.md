@@ -29,7 +29,9 @@ The project is pre-configured for only S3 monitoring as a simple, focused demons
 - SNS notifications (SMS, Email, Slack, Teams)
 - Multi-environment support (dev, staging, prod)
 - Local deployment (default) - Deploy from your machine using AWS CLI
-- GitHub Actions (optional) - Automated deployment with OIDC authentication
+- GitHub Actions (optional) - Automated deployment with [OIDC authentication](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect) (no long-lived credentials)
+
+This project follows [AWS CDK best practices](https://docs.aws.amazon.com/cdk/v2/guide/best-practices.html) for infrastructure-as-code.
 
 See full details and diagrams in [Architecture](docs/ARCHITECTURE.md).
 
@@ -93,7 +95,7 @@ See [Enabling Services](docs/ENABLING_SERVICES.md) for details.
 - **[Enabling Services](docs/ENABLING_SERVICES.md)** - How to enable ECS, RDS, ELB, and other services
 
 **Automation & CI/CD (Optional):**
-- **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with OIDC (includes quick start and alternative methods)
+- **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** - Automated deployment with OIDC (follows [GitHub security best practices](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect))
 
 **Notifications:**
 - **[Notification Setup](docs/NOTIFICATION_SETUP.md)** - SMS, Email, Slack, Teams setup

@@ -528,3 +528,6 @@ npm run build
 - Verify resources exist in the same region as your deployment (check `lib/config/environment-config.ts`)
 - Check CloudWatch console for alarm state and evaluation history
 - Remember S3 metrics update once per day
+
+**Additional Resources:**
+- [AWS CDK Best Practices Guide](https://docs.aws.amazon.com/cdk/v2/guide/best-practices.html)

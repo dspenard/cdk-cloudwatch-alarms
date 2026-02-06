@@ -9,6 +9,7 @@
 - [Security Architecture](#security-architecture)
 - [Cost Breakdown](#cost-breakdown)
 - [Operational Health](#operational-health)
+- [CDK Best Practices](#cdk-best-practices)
 
 ## Architecture Diagrams
 
@@ -178,3 +179,29 @@ To ensure the monitoring system itself is healthy:
 - Monitor SNS delivery failure rates
 - Review CloudWatch Logs regularly for Lambda execution issues
 - Use CloudWatch Dashboards to visualize monitoring system health
+
+## CDK Best Practices
+
+This project follows AWS CDK best practices for infrastructure-as-code development:
+
+**Code Organization:**
+- Constructs organized by service type (`lib/constructs/alarms/`, `lib/constructs/notifications/`)
+- Configuration separated from infrastructure code (`lib/config/`)
+- Environment-specific settings externalized
+
+**Security:**
+- Least-privilege IAM policies for GitHub Actions OIDC
+- No hardcoded credentials or secrets in code
+- Secrets Manager recommended for webhook URLs
+
+**Multi-Environment:**
+- Single codebase deploys to multiple environments
+- Environment-specific configuration via context
+- Separate AWS accounts for environment isolation
+
+**Testing & Deployment:**
+- `cdk diff` before deployment to preview changes
+- CloudFormation change sets for safe updates
+- GitHub Actions for automated CI/CD (optional)
+
+For comprehensive guidance, see the [AWS CDK Best Practices Guide](https://docs.aws.amazon.com/cdk/v2/guide/best-practices.html).
