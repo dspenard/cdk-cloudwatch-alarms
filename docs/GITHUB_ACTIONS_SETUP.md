@@ -22,6 +22,7 @@ This guide walks you through setting up secure OIDC authentication for GitHub Ac
 - [Security Best Practices](#security-best-practices)
 - [Alternative Authentication Methods](#alternative-authentication-methods)
 - [Destroying Infrastructure via GitHub Actions](#destroying-infrastructure-via-github-actions)
+- [Additional Resources](#additional-resources)
 
 ## Why OIDC?
 
