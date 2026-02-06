@@ -111,15 +111,171 @@ fi
 echo ""
 
 # Step 5: Attach Permissions Policy
-echo -e "${YELLOW}Step 5: Attaching permissions policy...${NC}"
-echo "Using AdministratorAccess for simplicity (consider least privilege for production)"
+echo -e "${YELLOW}Step 5: Creating and attaching least-privilege policy...${NC}"
 
+# Create the policy file
+cat > /tmp/github-actions-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CDKBootstrapPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:GetTemplate",
+        "s3:CreateBucket",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "iam:CreateRole",
+        "iam:PutRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:GetRole",
+        "iam:PassRole",
+        "ssm:GetParameter",
+        "ssm:PutParameter"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:*:*:stack/CDKToolkit/*",
+        "arn:aws:s3:::cdktoolkit-stagingbucket-*",
+        "arn:aws:iam::*:role/cdk-*",
+        "arn:aws:ssm:*:*:parameter/cdk-bootstrap/*"
+      ]
+    },
+    {
+      "Sid": "MonitoringStackPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:GetTemplate",
+        "cloudwatch:PutMetricAlarm",
+        "cloudwatch:DeleteAlarms",
+        "cloudwatch:DescribeAlarms",
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:ListSubscriptionsByTopic",
+        "sns:SetSubscriptionAttributes",
+        "lambda:CreateFunction",
+        "lambda:DeleteFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:GetFunction",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:PublishLayerVersion",
+        "lambda:DeleteLayerVersion",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:PassRole",
+        "s3:GetBucketLocation",
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:*:*:stack/monitoring-*/*",
+        "arn:aws:cloudformation:*:*:stack/MonitoringStack-*/*",
+        "arn:aws:cloudwatch:*:*:alarm:*-s3-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-ecs-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-rds-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-elb-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-efs-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-fsx-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-ses-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-sfn-*",
+        "arn:aws:cloudwatch:*:*:alarm:*-waf-*",
+        "arn:aws:sns:*:*:*-monitoring-*-alerts",
+        "arn:aws:lambda:*:*:function:*-monitoring-*-forwarder",
+        "arn:aws:lambda:*:*:layer:*",
+        "arn:aws:iam::*:role/*-monitoring-*",
+        "arn:aws:s3:::cdktoolkit-stagingbucket-*",
+        "arn:aws:s3:::*"
+      ]
+    },
+    {
+      "Sid": "CDKAssetPublishing",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+
+# Create or update the policy
+POLICY_NAME="GitHubActionsCDKDeployPolicy"
+POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
+
+if aws iam get-policy --policy-arn "$POLICY_ARN" --profile "$AWS_PROFILE" &>/dev/null; then
+    echo -e "${YELLOW}! Policy already exists, creating new version...${NC}"
+    # Get current default version and delete old versions if at limit
+    VERSIONS=$(aws iam list-policy-versions --policy-arn "$POLICY_ARN" --profile "$AWS_PROFILE" --query 'Versions[?!IsDefaultVersion].[VersionId]' --output text)
+    VERSION_COUNT=$(echo "$VERSIONS" | wc -l)
+    
+    # AWS allows max 5 versions, delete oldest if at limit
+    if [ "$VERSION_COUNT" -ge 4 ]; then
+        OLDEST_VERSION=$(echo "$VERSIONS" | tail -1)
+        aws iam delete-policy-version \
+            --policy-arn "$POLICY_ARN" \
+            --version-id "$OLDEST_VERSION" \
+            --profile "$AWS_PROFILE" &>/dev/null
+    fi
+    
+    aws iam create-policy-version \
+        --policy-arn "$POLICY_ARN" \
+        --policy-document file:///tmp/github-actions-policy.json \
+        --set-as-default \
+        --profile "$AWS_PROFILE"
+    echo -e "${GREEN}✓ Policy updated${NC}"
+else
+    aws iam create-policy \
+        --policy-name "$POLICY_NAME" \
+        --policy-document file:///tmp/github-actions-policy.json \
+        --description "Least-privilege policy for GitHub Actions CDK deployments" \
+        --profile "$AWS_PROFILE"
+    echo -e "${GREEN}✓ Policy created${NC}"
+fi
+
+# Attach the policy to the role
 aws iam attach-role-policy \
     --role-name "$ROLE_NAME" \
-    --policy-arn arn:aws:iam::aws:policy/AdministratorAccess \
+    --policy-arn "$POLICY_ARN" \
     --profile "$AWS_PROFILE" 2>/dev/null || echo "Policy already attached"
 
-echo -e "${GREEN}✓ Permissions attached${NC}"
+echo -e "${GREEN}✓ Least-privilege permissions attached${NC}"
 echo ""
 
 # Step 6: Verify CDK Bootstrap

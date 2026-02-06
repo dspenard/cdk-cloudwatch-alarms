@@ -33,7 +33,7 @@ This guide walks you through setting up secure OIDC authentication for GitHub Ac
 ## Prerequisites
 
 - AWS CLI configured with a profile
-- Admin access to your AWS account (easiest for setup, but see [Security Best Practices](#security-best-practices) for least-privilege permissions)
+- Permissions to create IAM roles and policies in your AWS account
 - Access to your GitHub repository settings
 
 ## Quick Start (15 minutes)
@@ -49,7 +49,7 @@ Get GitHub Actions working in 15 minutes with secure OIDC authentication.
 **What it does:**
 - Creates OIDC provider in AWS
 - Creates IAM role `GitHubActionsCDKDeploy`
-- Attaches necessary permissions
+- Creates and attaches least-privilege policy `GitHubActionsCDKDeployPolicy`
 - Outputs the Role ARN you need
 
 **Save the Role ARN** - it looks like:
@@ -185,31 +185,23 @@ aws iam create-role \
 
 ### Step 5: Attach Permissions Policy
 
-**For Testing (Quick Start):**
-```bash
-aws iam attach-role-policy \
-  --role-name GitHubActionsCDKDeploy \
-  --policy-arn arn:aws:iam::aws:policy/AdministratorAccess \
-  --profile YOUR_PROFILE
-```
+**Least Privilege Policy (Recommended):**
 
-**For Production (Recommended):**
-
-Create a custom policy with least privilege permissions. See `docs/DEPLOYMENT_GUIDE.md` for the detailed policy, then:
+The script creates a custom policy with only the permissions needed for CDK deployment:
 
 ```bash
-# Create the policy first
-aws iam create-policy \
-  --policy-name CDKDeploymentPolicy \
-  --policy-document file://cdk-deployment-policy.json \
-  --profile YOUR_PROFILE
-
-# Attach it to the role
-aws iam attach-role-policy \
-  --role-name GitHubActionsCDKDeploy \
-  --policy-arn arn:aws:iam::YOUR_ACCOUNT_ID:policy/CDKDeploymentPolicy \
-  --profile YOUR_PROFILE
+# The script automatically creates GitHubActionsCDKDeployPolicy
+# This policy includes:
+# - CloudFormation operations for CDK stacks
+# - CloudWatch alarm management
+# - SNS topic and subscription management
+# - Lambda function management (for Slack/Teams)
+# - IAM role management (for Lambda execution)
+# - S3 operations for CDK assets
+# - CDK bootstrap permissions
 ```
+
+The policy is scoped to specific resource patterns (e.g., `monitoring-*` stacks, `*-monitoring-*` topics) to minimize security risk.
 
 ### Step 6: Verify CDK Bootstrap
 
@@ -429,9 +421,15 @@ To deploy to staging and prod environments, you need to set up OIDC authenticati
 
 ## Security Best Practices
 
-### 1. Use Least Privilege Permissions
+### 1. Least Privilege Permissions (Default)
 
-Replace `AdministratorAccess` with a custom policy that only grants necessary permissions.
+The setup script now creates a custom policy with only necessary permissions. This policy:
+- ✅ Scopes resources to specific patterns (e.g., `monitoring-*` stacks)
+- ✅ Limits actions to only what's needed for CDK deployment
+- ✅ Prevents access to unrelated AWS resources
+- ✅ Follows AWS security best practices
+
+**Note:** The policy includes permissions for all supported services (S3, ECS, RDS, ELB, EFS, FSx, SES, Step Functions, WAF) at the time this repo was initially created. If you add monitoring for additional AWS services not currently supported, you may need to update the policy by re-running the setup script or manually adding the required permissions.
 
 ### 2. Restrict to Specific Branches
 
